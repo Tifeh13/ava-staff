@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSIjMDcwNzA3Ii8+PHRleHQgeD0iMTYiIHk9IjIzIiBmb250LWZhbWlseT0ic2VyaWYiIGZvbnQtc2l6ZT0iMjIiIGZvbnQtd2VpZ2h0PSIzMDAiIGZpbGw9IiNENEFGMzciIHRleHQtYW5jaG9yPSJtaWRkbGUiIGxldHRlci1zcGFjaW5nPSIxIj5BPC90ZXh0PjxyZWN0IHg9IjIiIHk9IjMwIiB3aWR0aD0iMjgiIGhlaWdodD0iMSIgZmlsbD0iI0Q0QUYzNyIgb3BhY2l0eT0iMC40Ii8+PC9zdmc+">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Join Our Team — Ava Jewelry</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Montserrat:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+  const app = initializeApp({
+    apiKey:"AIzaSyCy9fDJR4Bt31lOa1lQ6sVYjcLCAVx-HTs",
+    authDomain:"avajewelry-28561.firebaseapp.com",
+    projectId:"avajewelry-28561",
+    storageBucket:"avajewelry-28561.firebasestorage.app",
+    messagingSenderId:"715075775873",
+    appId:"1:715075775873:web:4d766238bf8a35228c0c80"
+  });
+  const db = getFirestore(app);
+  const storage = getStorage(app);
+  window._submitApplication = async function(data, cvFile) {
+    let cvUrl = null;
+    if (cvFile) {
+      try {
+        const r = ref(storage, `staff-cvs/${Date.now()}-${cvFile.name}`);
+        await uploadBytes(r, cvFile);
+        cvUrl = await getDownloadURL(r);
+      } catch(e) { console.warn('CV upload:', e.message); }
+    }
+    await addDoc(collection(db, 'staff_applications'), {
+      ...data, cvUrl, status:'pending', createdAt:serverTimestamp(), timestamp:Date.now()
+    });
+  };
+</script>
+
+<style>
+:root {
+  --gold:#D4AF37;--gl:#FFD700;--black:#070707;--dark:#0f0f0f;
+  --card:#141414;--card2:#1a1a1a;--border:rgba(212,175,55,.12);
+  --white:#F5F0E8;--wd:rgba(245,240,232,.65);--gray:#666;
+  --serif:'Cormorant Garamond',serif;--sans:'Montserrat',sans-serif;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--black);color:var(--white);font-family:var(--sans);overflow-x:hidden;}
+
+.hdr{border-bottom:1px solid var(--border);padding:1.4rem 4rem;display:flex;align-items:center;justify-content:space-between;}
+.logo{font-family:var(--serif);font-size:1.8rem;font-weight:300;letter-spacing:.4em;color:var(--gold);line-height:1;}
+.logo small{display:block;font-size:.4rem;letter-spacing:.6em;text-transform:uppercase;color:var(--gray);font-family:var(--sans);}
+.hdr-tag{font-size:.52rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gray);}
+
+.hero{padding:4rem 4rem 2.5rem;max-width:820px;}
+.hero-tag{font-size:.52rem;letter-spacing:.4em;text-transform:uppercase;color:var(--gold);margin-bottom:1rem;display:flex;align-items:center;gap:.8rem;}
+.hero-tag::before{content:'';display:block;width:28px;height:1px;background:var(--gold);}
+.hero h1{font-family:var(--serif);font-size:clamp(2.2rem,5vw,3.5rem);font-weight:300;line-height:1.15;margin-bottom:.8rem;}
+.hero h1 em{color:var(--gold);font-style:italic;}
+.hero p{font-size:.68rem;line-height:1.9;color:var(--wd);max-width:480px;}
+
+.prog{display:flex;align-items:center;padding:2rem 4rem;border-bottom:1px solid var(--border);overflow-x:auto;gap:0;}
+.stp{display:flex;align-items:center;gap:.6rem;flex-shrink:0;}
+.stp-n{width:26px;height:26px;border-radius:50%;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.5rem;color:var(--gray);transition:all .3s;flex-shrink:0;}
+.stp.active .stp-n{border-color:var(--gold);color:var(--gold);background:rgba(212,175,55,.08);}
+.stp.done .stp-n{background:var(--gold);color:var(--black);border-color:var(--gold);}
+.stp-l{font-size:.52rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);transition:color .3s;}
+.stp.active .stp-l{color:var(--wd);}
+.stp.done .stp-l{color:var(--gold);}
+.stp-line{width:36px;height:1px;background:var(--border);margin:0 .4rem;flex-shrink:0;}
+
+.fwrap{max-width:800px;margin:0 auto;padding:3rem 4rem 6rem;}
+.fsec{display:none;}
+.fsec.active{display:block;animation:fadeUp .35s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+.sec-hd{display:flex;align-items:center;gap:1rem;margin-bottom:2.2rem;padding-bottom:1.2rem;border-bottom:1px solid var(--border);}
+.sec-n{width:38px;height:38px;border-radius:50%;border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:1rem;color:var(--gold);flex-shrink:0;}
+.sec-title{font-family:var(--serif);font-size:1.4rem;font-weight:300;}
+.sec-title em{color:var(--gold);font-style:italic;}
+.sec-sub{font-size:.58rem;color:var(--gray);margin-top:.15rem;}
+
+.notice{background:rgba(212,175,55,.05);border:1px solid rgba(212,175,55,.18);border-left:2px solid var(--gold);padding:1rem 1.3rem;margin-bottom:1.8rem;}
+.notice p{font-size:.63rem;color:var(--wd);line-height:1.8;}
+.notice strong{color:var(--gold);}
+
+.fg{display:grid;gap:1rem;margin-bottom:1rem;}
+.fg.g2{grid-template-columns:1fr 1fr;}
+.fg.g1{grid-template-columns:1fr;}
+.fld{display:flex;flex-direction:column;gap:.38rem;}
+.fld label{font-size:.5rem;letter-spacing:.26em;text-transform:uppercase;color:var(--gray);}
+.fld label span{color:var(--gold);}
+.fld input,.fld select,.fld textarea{background:var(--card);border:1px solid var(--border);color:var(--white);padding:.82rem 1rem;font-family:var(--sans);font-size:.7rem;outline:none;transition:border-color .2s;-webkit-appearance:none;width:100%;}
+.fld input::placeholder,.fld textarea::placeholder{color:var(--gray);}
+.fld input:focus,.fld select:focus,.fld textarea:focus{border-color:var(--gold);}
+.fld select option{background:var(--card2);}
+.fld textarea{resize:vertical;min-height:100px;line-height:1.7;}
+
+.cv-box{border:1px dashed rgba(212,175,55,.25);background:var(--card);padding:2.5rem 2rem;text-align:center;cursor:pointer;transition:all .3s;position:relative;margin-bottom:1rem;}
+.cv-box:hover,.cv-box.over{border-color:var(--gold);background:rgba(212,175,55,.03);}
+.cv-box input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.cv-icon{font-size:1.8rem;opacity:.25;margin-bottom:.7rem;}
+.cv-txt{font-size:.62rem;color:var(--gold);margin-bottom:.25rem;}
+.cv-sub{font-size:.55rem;color:var(--gray);}
+.cv-fname{margin-top:.7rem;font-size:.58rem;color:var(--gold);display:none;}
+
+.decl{background:var(--card);border:1px solid var(--border);padding:1.4rem;font-size:.65rem;color:var(--wd);line-height:1.85;margin-bottom:1.8rem;}
+
+.fnav{display:flex;justify-content:space-between;align-items:center;margin-top:2.5rem;padding-top:1.8rem;border-top:1px solid var(--border);gap:1rem;}
+.btn-p{background:transparent;border:1px solid var(--border);color:var(--wd);padding:.85rem 2rem;font-family:var(--sans);font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;transition:all .25s;}
+.btn-p:hover{border-color:var(--gold);color:var(--gold);}
+.btn-n{background:var(--gold);border:none;color:var(--black);padding:.85rem 2.5rem;font-family:var(--sans);font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;font-weight:600;cursor:pointer;transition:background .25s;}
+.btn-n:hover{background:var(--gl);}
+.btn-n:disabled{opacity:.5;cursor:not-allowed;}
+
+.success{display:none;text-align:center;padding:6rem 2rem;}
+.success.show{display:block;animation:fadeUp .5s ease;}
+.success-mark{font-size:2.5rem;margin-bottom:1.5rem;}
+.success h2{font-family:var(--serif);font-size:2.2rem;font-weight:300;margin-bottom:.8rem;}
+.success h2 em{color:var(--gold);font-style:italic;}
+.success p{font-size:.68rem;color:var(--wd);line-height:1.8;max-width:440px;margin:0 auto;}
+
+.tbox{position:fixed;bottom:2rem;right:2rem;z-index:9999;display:flex;flex-direction:column;gap:.7rem;pointer-events:none;}
+.toast{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--gold);padding:.85rem 1.3rem;min-width:250px;font-size:.67rem;animation:tIn .3s ease;pointer-events:auto;}
+.toast.err{border-left-color:#e74c3c;}
+@keyframes tIn{from{transform:translateX(70px);opacity:0}to{transform:translateX(0);opacity:1}}
+
+footer{border-top:1px solid var(--border);padding:1.8rem 4rem;display:flex;justify-content:space-between;align-items:center;}
+.fcopy{font-size:.52rem;color:var(--gray);letter-spacing:.08em;}
+
+@media(max-width:768px){
+  .hdr{padding:1rem 1.5rem;}.hdr-tag{display:none;}
+  .hero{padding:2.5rem 1.5rem 2rem;}
+  .fwrap{padding:2rem 1.5rem 4rem;}
+  footer{padding:1.5rem;flex-direction:column;gap:.5rem;text-align:center;}
+  .prog{padding:1.2rem 1.5rem;}.stp-l{display:none;}.stp-line{width:18px;}
+  .fg.g2{grid-template-columns:1fr;}
+  .fnav{flex-direction:column-reverse;}.btn-p,.btn-n{width:100%;text-align:center;}
+  .sec-title{font-size:1.2rem;}
+}
+@media(max-width:480px){
+  .stp-n{width:22px;height:22px;font-size:.45rem;}.stp-line{width:10px;}
+  .hero h1{font-size:1.9rem;}
+}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="logo">AVA<small>Jewelry</small></div>
+  <div class="hdr-tag">Staff Onboarding</div>
+</header>
+
+<div class="hero">
+  <div class="hero-tag">Careers</div>
+  <h1>Join Our <em>Team</em></h1>
+  <p>Complete all sections carefully. Your information is kept strictly confidential and used for employment purposes only.</p>
+</div>
+
+<div class="prog" id="prog">
+  <div class="stp active" data-s="1"><div class="stp-n">01</div><div class="stp-l">Account</div></div>
+  <div class="stp-line"></div>
+  <div class="stp" data-s="2"><div class="stp-n">02</div><div class="stp-l">Personal</div></div>
+  <div class="stp-line"></div>
+  <div class="stp" data-s="3"><div class="stp-n">03</div><div class="stp-l">CV & Bio</div></div>
+  <div class="stp-line"></div>
+  <div class="stp" data-s="4"><div class="stp-n">04</div><div class="stp-l">Bank</div></div>
+  <div class="stp-line"></div>
+  <div class="stp" data-s="5"><div class="stp-n">05</div><div class="stp-l">Identity</div></div>
+  <div class="stp-line"></div>
+  <div class="stp" data-s="6"><div class="stp-n">06</div><div class="stp-l">Next of Kin</div></div>
+  <div class="stp-line"></div>
+  <div class="stp" data-s="7"><div class="stp-n">07</div><div class="stp-l">Declaration</div></div>
+</div>
+
+<div class="fwrap">
+
+  <!-- STEP 1: GMAIL / ACCOUNT -->
+  <div class="fsec active" id="s1">
+    <div class="sec-hd">
+      <div class="sec-n">1</div>
+      <div>
+        <div class="sec-title">Your <em>Gmail Account</em></div>
+        <div class="sec-sub">This will be your identity across Ava systems</div>
+      </div>
+    </div>
+    <div class="notice">
+      <p><strong>Please read before continuing:</strong> Your Gmail address will be connected to internal Ava Jewelry platforms — including your staff profile, task assignments, payslip delivery, and any company tools you are granted access to. Please use an address you check regularly, and keep your password private. Do not share these credentials with anyone.</p>
+    </div>
+    <div class="fg g1">
+      <div class="fld">
+        <label>Gmail Address <span>*</span></label>
+        <input type="email" id="gmail" placeholder="yourname@gmail.com" autocomplete="email">
+      </div>
+    </div>
+    <div class="fg g2">
+      <div class="fld">
+        <label>Create a Portal Password <span>*</span></label>
+        <input type="password" id="portalPassword" placeholder="Minimum 6 characters">
+      </div>
+      <div class="fld">
+        <label>Confirm Password <span>*</span></label>
+        <input type="password" id="confirmPassword" placeholder="Repeat password">
+      </div>
+    </div>
+    <div class="fnav">
+      <span></span>
+      <button class="btn-n" onclick="next(1)">Next — Personal Info →</button>
+    </div>
+  </div>
+
+  <!-- STEP 2: PERSONAL INFO -->
+  <div class="fsec" id="s2">
+    <div class="sec-hd">
+      <div class="sec-n">2</div>
+      <div>
+        <div class="sec-title">Personal <em>Information</em></div>
+        <div class="sec-sub">Your basic details</div>
+      </div>
+    </div>
+    <div class="fg g2">
+      <div class="fld"><label>First Name <span>*</span></label><input type="text" id="firstName" placeholder="e.g. Amara"></div>
+      <div class="fld"><label>Last Name <span>*</span></label><input type="text" id="lastName" placeholder="e.g. Okafor"></div>
+    </div>
+    <div class="fg g2">
+      <div class="fld"><label>Email Address <span>*</span></label><input type="email" id="email" placeholder="your@email.com"></div>
+      <div class="fld"><label>Phone Number <span>*</span></label><input type="tel" id="phone" placeholder="+1 234 567 8900"></div>
+    </div>
+    <div class="fg g1">
+      <div class="fld"><label>Home Address <span>*</span></label><input type="text" id="address" placeholder="Street, City, State, Country"></div>
+    </div>
+    <div class="fg g2">
+      <div class="fld"><label>Date of Birth <span>*</span></label><input type="date" id="dob"></div>
+      <div class="fld"><label>Nationality <span>*</span></label><input type="text" id="nationality" placeholder="e.g. American, British"></div>
+    </div>
+    <div class="fg g2">
+      <div class="fld">
+        <label>Position Applied For <span>*</span></label>
+        <select id="position">
+          <option value="">Select role</option>
+          <option>Store Manager</option><option>Sales Associate</option><option>Jewelry Designer</option>
+          <option>Marketing Manager</option><option>Customer Service</option>
+          <option>Logistics & Shipping</option><option>Finance & Accounts</option>
+          <option>IT / Web Developer</option><option>Other</option>
+        </select>
+      </div>
+      <div class="fld">
+        <label>Highest Qualification</label>
+        <select id="qualification">
+          <option value="">Select</option>
+          <option>High School / GED</option><option>Associate Degree</option>
+          <option>Bachelor's Degree</option><option>Master's Degree</option>
+          <option>PhD / Doctorate</option><option>Professional Certificate</option>
+        </select>
+      </div>
+    </div>
+    <div class="fnav">
+      <button class="btn-p" onclick="prev(2)">← Back</button>
+      <button class="btn-n" onclick="next(2)">Next — CV & Bio →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: CV & BIO -->
+  <div class="fsec" id="s3">
+    <div class="sec-hd">
+      <div class="sec-n">3</div>
+      <div>
+        <div class="sec-title">CV / <em>Résumé</em></div>
+        <div class="sec-sub">Upload your CV and tell us a little about yourself</div>
+      </div>
+    </div>
+    <div class="cv-box" id="cvBox">
+      <input type="file" id="cvFile" accept=".pdf,.doc,.docx" onchange="handleCV(this)">
+      <div class="cv-icon">📄</div>
+      <div class="cv-txt">Click to upload or drag & drop your CV</div>
+      <div class="cv-sub">PDF, DOC, DOCX — max 5MB</div>
+      <div class="cv-fname" id="cvFname"></div>
+    </div>
+    <div class="fg g1">
+      <div class="fld">
+        <label>Brief Bio / Cover Note</label>
+        <textarea id="bio" placeholder="Tell us briefly about yourself and why you'd like to join Ava Jewelry..."></textarea>
+      </div>
+    </div>
+    <div class="fnav">
+      <button class="btn-p" onclick="prev(3)">← Back</button>
+      <button class="btn-n" onclick="next(3)">Next — Bank Details →</button>
+    </div>
+  </div>
+
+  <!-- STEP 4: BANK DETAILS -->
+  <div class="fsec" id="s4">
+    <div class="sec-hd">
+      <div class="sec-n">4</div>
+      <div>
+        <div class="sec-title">Bank <em>Details</em></div>
+        <div class="sec-sub">For salary payments only — stored securely</div>
+      </div>
+    </div>
+    <div class="notice">
+      <p><strong>Confidential:</strong> Your bank details are used solely for processing your salary. They are stored securely and will never be shared with any third party.</p>
+    </div>
+    <div class="fg g2">
+      <div class="fld"><label>Bank Name <span>*</span></label><input type="text" id="bankName" placeholder="e.g. Chase, Barclays, Deutsche Bank"></div>
+      <div class="fld"><label>Account Type</label>
+        <select id="accountType"><option value="">Select</option><option>Checking</option><option>Savings</option><option>Current</option></select>
+      </div>
+    </div>
+    <div class="fg g2">
+      <div class="fld"><label>Account Number <span>*</span></label><input type="text" id="accountNumber" placeholder="Your account number"></div>
+      <div class="fld"><label>Routing / Sort Code</label><input type="text" id="routingCode" placeholder="Routing / Sort / IBAN"></div>
+    </div>
+    <div class="fg g2">
+      <div class="fld"><label>Account Holder Name <span>*</span></label><input type="text" id="accountName" placeholder="Name exactly as on account"></div>
+      <div class="fld"><label>Bank Country</label><input type="text" id="bankCountry" placeholder="e.g. United States, United Kingdom"></div>
+    </div>
+    <div class="fnav">
+      <button class="btn-p" onclick="prev(4)">← Back</button>
+      <button class="btn-n" onclick="next(4)">Next — Identity →</button>
+    </div>
+  </div>
+
+  <!-- STEP 5: IDENTITY -->
+  <div class="fsec" id="s5">
+    <div class="sec-hd">
+      <div class="sec-n">5</div>
+      <div>
+        <div class="sec-title">Identity <em>Verification</em></div>
+        <div class="sec-sub">Government-issued identification</div>
+      </div>
+    </div>
+    <div class="notice">
+      <p><strong>Required for compliance:</strong> Please provide at least one form of government-issued ID. All information is encrypted and stored securely in line with applicable data protection laws.</p>
+    </div>
+    <div class="fg g2">
+      <div class="fld"><label>Country of Residence <span>*</span></label><input type="text" id="countryResidence" placeholder="e.g. United States"></div>
+      <div class="fld">
+        <label>Work Authorization</label>
+        <select id="workAuth">
+          <option value="">Select</option>
+          <option>US Citizen</option><option>Permanent Resident / Green Card</option>
+          <option>Work Visa</option><option>EU Citizen</option>
+          <option>UK Settled Status</option><option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg g2">
+      <div class="fld"><label>SSN (US Staff)</label><input type="text" id="ssn" placeholder="XXX-XX-XXXX" maxlength="11"></div>
+      <div class="fld"><label>NIN / National ID (UK & EU Staff)</label><input type="text" id="nin" placeholder="National Insurance / ID Number"></div>
+    </div>
+    <div class="fg g2">
+      <div class="fld"><label>Passport Number</label><input type="text" id="passportNumber" placeholder="Passport number"></div>
+      <div class="fld"><label>Tax ID / TIN</label><input type="text" id="taxId" placeholder="Tax Identification Number"></div>
+    </div>
+    <div class="fnav">
+      <button class="btn-p" onclick="prev(5)">← Back</button>
+      <button class="btn-n" onclick="next(5)">Next — Next of Kin →</button>
+    </div>
+  </div>
+
+  <!-- STEP 6: NEXT OF KIN -->
+  <div class="fsec" id="s6">
+    <div class="sec-hd">
+      <div class="sec-n">6</div>
+      <div>
+        <div class="sec-title">Next of <em>Kin</em></div>
+        <div class="sec-sub">Emergency contact information</div>
+      </div>
+    </div>
+    <div class="fg g2">
+      <div class="fld"><label>Full Name <span>*</span></label><input type="text" id="kinName" placeholder="Full name"></div>
+      <div class="fld"><label>Relationship <span>*</span></label>
+        <select id="kinRel">
+          <option value="">Select</option>
+          <option>Spouse</option><option>Parent</option><option>Sibling</option>
+          <option>Child</option><option>Friend</option><option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg g2">
+      <div class="fld"><label>Phone Number <span>*</span></label><input type="tel" id="kinPhone" placeholder="+1 234 567 8900"></div>
+      <div class="fld"><label>Email Address</label><input type="email" id="kinEmail" placeholder="optional"></div>
+    </div>
+    <div class="fg g1">
+      <div class="fld"><label>Address</label><input type="text" id="kinAddress" placeholder="Next of kin address"></div>
+    </div>
+    <div class="fnav">
+      <button class="btn-p" onclick="prev(6)">← Back</button>
+      <button class="btn-n" onclick="next(6)">Next — Declaration →</button>
+    </div>
+  </div>
+
+  <!-- STEP 7: DECLARATION -->
+  <div class="fsec" id="s7">
+    <div class="sec-hd">
+      <div class="sec-n">7</div>
+      <div>
+        <div class="sec-title"><em>Declaration</em></div>
+        <div class="sec-sub">Please read carefully and sign below</div>
+      </div>
+    </div>
+    <div class="decl">
+      I hereby declare that all information provided in this form is true, complete, and accurate to the best of my knowledge. I understand that any false or misleading information may result in disqualification from the hiring process or dismissal if already employed. I consent to Ava Jewelry storing and processing my personal data for employment purposes in accordance with applicable data protection laws.
+    </div>
+    <div class="fg g2">
+      <div class="fld"><label>Full Name as Signature <span>*</span></label><input type="text" id="sigName" placeholder="Type your full name to confirm"></div>
+      <div class="fld"><label>Date <span>*</span></label><input type="date" id="sigDate"></div>
+    </div>
+    <div class="fnav">
+      <button class="btn-p" onclick="prev(7)">← Back</button>
+      <button class="btn-n" id="submitBtn" onclick="submitApp()">Submit Application →</button>
+    </div>
+  </div>
+
+  <!-- SUCCESS -->
+  <div class="success" id="successScreen">
+    <div class="success-mark">✦</div>
+    <h2>Application <em>Received</em></h2>
+    <p>Thank you for applying to Ava Jewelry. Your application has been submitted successfully. We will be in touch within 3–5 business days.</p>
+  </div>
+
+</div>
+
+<footer>
+  <div class="fcopy">© 2026 Ava Jewelry. All rights reserved.</div>
+  <div class="fcopy">Strictly Confidential · Staff Onboarding</div>
+</footer>
+<div class="tbox" id="tbox"></div>
+
+<script>
+let cur = 1;
+let cvFileObj = null;
+
+const cvBox = document.getElementById('cvBox');
+cvBox.addEventListener('dragover', e => { e.preventDefault(); cvBox.classList.add('over'); });
+cvBox.addEventListener('dragleave', () => cvBox.classList.remove('over'));
+cvBox.addEventListener('drop', e => {
+  e.preventDefault(); cvBox.classList.remove('over');
+  const f = e.dataTransfer.files[0];
+  if (f) { cvFileObj = f; showCVName(f.name); }
+});
+function handleCV(inp) { cvFileObj = inp.files[0]; if (cvFileObj) showCVName(cvFileObj.name); }
+function showCVName(n) { const el = document.getElementById('cvFname'); el.style.display='block'; el.textContent='✓ '+n; }
+
+document.getElementById('ssn').addEventListener('input', function() {
+  let v = this.value.replace(/\D/g,'').slice(0,9);
+  if (v.length>5) v=v.slice(0,3)+'-'+v.slice(3,5)+'-'+v.slice(5);
+  else if (v.length>3) v=v.slice(0,3)+'-'+v.slice(3);
+  this.value = v;
+});
+
+function toast(msg, err) {
+  const t = document.createElement('div');
+  t.className = 'toast'+(err?' err':'');
+  t.textContent = msg;
+  document.getElementById('tbox').appendChild(t);
+  setTimeout(() => t.remove(), 3200);
+}
+
+const required = {
+  1: ['gmail','portalPassword','confirmPassword'],
+  2: ['firstName','lastName','email','phone','address','dob','nationality','position'],
+  3: [],
+  4: ['bankName','accountNumber','accountName'],
+  5: ['countryResidence'],
+  6: ['kinName','kinRel','kinPhone'],
+  7: ['sigName','sigDate']
+};
+
+function validate(step) {
+  for (const id of (required[step]||[])) {
+    const el = document.getElementById(id);
+    if (!el || !el.value.trim()) {
+      toast('Please fill in all required fields', true);
+      if (el) { el.style.borderColor='#e74c3c'; el.focus(); }
+      return false;
+    }
+  }
+  if (step === 1) {
+    const g = document.getElementById('gmail').value;
+    if (!g.includes('@gmail.com')) { toast('Please enter a valid Gmail address', true); return false; }
+    const p1 = document.getElementById('portalPassword').value;
+    const p2 = document.getElementById('confirmPassword').value;
+    if (p1.length < 6) { toast('Password must be at least 6 characters', true); return false; }
+    if (p1 !== p2) { toast('Passwords do not match', true); return false; }
+  }
+  return true;
+}
+
+function next(from) { if (validate(from)) go(from+1); }
+function prev(from) { go(from-1); }
+function go(n) {
+  document.getElementById('s'+cur).classList.remove('active');
+  cur = n;
+  document.getElementById('s'+cur).classList.add('active');
+  updateProg();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function updateProg() {
+  document.querySelectorAll('.stp').forEach(s => {
+    const n = parseInt(s.dataset.s);
+    s.classList.remove('active','done');
+    if (n===cur) s.classList.add('active');
+    else if (n<cur) s.classList.add('done');
+  });
+}
+
+function g(id) { return document.getElementById(id)?.value?.trim()||''; }
+
+async function submitApp() {
+  if (!validate(7)) return;
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = 'Submitting...';
+  const data = {
+    gmail:g('gmail'), portalPassword:g('portalPassword'),
+    firstName:g('firstName'), lastName:g('lastName'),
+    email:g('email'), phone:g('phone'), address:g('address'),
+    dob:g('dob'), nationality:g('nationality'),
+    position:g('position'), qualification:g('qualification'),
+    bio:g('bio'),
+    bankName:g('bankName'), accountType:g('accountType'),
+    accountNumber:g('accountNumber'), routingCode:g('routingCode'),
+    accountName:g('accountName'), bankCountry:g('bankCountry'),
+    countryResidence:g('countryResidence'), workAuth:g('workAuth'),
+    ssn:g('ssn'), nin:g('nin'),
+    passportNumber:g('passportNumber'), taxId:g('taxId'),
+    kinName:g('kinName'), kinRel:g('kinRel'),
+    kinPhone:g('kinPhone'), kinEmail:g('kinEmail'), kinAddress:g('kinAddress'),
+    sigName:g('sigName'), sigDate:g('sigDate'),
+  };
+  try {
+    await window._submitApplication(data, cvFileObj);
+    fetch('/api/send-email', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        type:'staff_application',
+        applicantName: data.firstName+' '+data.lastName,
+        applicantEmail: data.email,
+        gmail: data.gmail,
+        position: data.position,
+        phone: data.phone,
+        nationality: data.nationality,
+        bankName: data.bankName,
+        accountNumber: data.accountNumber,
+        ssn: data.ssn, nin: data.nin,
+        passportNumber: data.passportNumber,
+        kinName: data.kinName, kinPhone: data.kinPhone,
+      })
+    }).catch(()=>{});
+    document.getElementById('s7').classList.remove('active');
+    document.getElementById('successScreen').classList.add('show');
+    window.scrollTo({top:0,behavior:'smooth'});
+  } catch(e) {
+    toast('Submission failed: '+e.message, true);
+    btn.disabled = false; btn.textContent = 'Submit Application →';
+  }
+}
+
+document.querySelectorAll('input,select').forEach(el => {
+  el.addEventListener('input', () => el.style.borderColor='');
+});
+</script>
+</body>
+</html>
