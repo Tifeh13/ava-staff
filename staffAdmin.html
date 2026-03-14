@@ -51,6 +51,26 @@
     } catch(e) { return []; }
   };
 
+  // Load ID documents for a specific staff member — returns object keyed by label
+  window._getIdDocs = async (staffDocId) => {
+    try {
+      const labels = ['ssnDoc', 'idCardDoc', 'passportDoc', 'otherDoc'];
+      const result = {};
+      for (const label of labels) {
+        try {
+          const docSnap = await getDocs(collection(db, 'staff_id_docs'));
+          docSnap.docs.forEach(d => {
+            const data = d.data();
+            if (d.id === staffDocId + '_' + label || data.staffDocId === staffDocId && data.label === label) {
+              result[label] = data.imageData;
+            }
+          });
+        } catch(e) {}
+      }
+      return result;
+    } catch(e) { console.warn('getIdDocs error:', e.message); return {}; }
+  };
+
   window._updateStaff = async (id, data) => {
     await updateDoc(doc(db, 'staff_applications', id), data);
   };
@@ -615,7 +635,7 @@ function filterTable(type) {
 }
 
 // ── VIEW STAFF MODAL ──
-function viewStaff(id) {
+async function viewStaff(id) {
   const s = allStaff.find(x => x.id === id);
   if (!s) return;
 
@@ -624,6 +644,23 @@ function viewStaff(id) {
       <span class="dk">${k}</span>
       <span class="dv${hi?' hi':''}">${v||'—'}</span>
     </div>`;
+
+  // Load ID docs from separate collection
+  const idDocs = await window._getIdDocs(id);
+  const labelMap = { ssnDoc:'SSN Card', idCardDoc:'ID Card / License', passportDoc:'Passport', otherDoc:'Other Document' };
+  const hasAnyDoc = Object.keys(idDocs).length > 0;
+  const docsHtml = hasAnyDoc
+    ? `<div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-top:.6rem">
+        ${Object.entries(idDocs).map(([key, imageData]) => `
+          <div style="background:var(--card2);border:1px solid var(--border);padding:.6rem">
+            <div style="font-size:.48rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gray);margin-bottom:.4rem">${labelMap[key]||key}</div>
+            ${imageData && imageData.startsWith('data:image')
+              ? `<img src="${imageData}" style="width:100%;max-height:120px;object-fit:contain;border:1px solid var(--border);background:#000;cursor:pointer" onclick="window.open(this.src)" alt="${key}">`
+              : `<div style="font-size:.55rem;color:var(--gold)">📄 PDF document saved</div>`}
+            <div style="margin-top:.3rem"><a href="${imageData}" download="${(labelMap[key]||key).replace(/ /g,'_')}" style="color:var(--gold);font-size:.5rem">↓ Download</a></div>
+          </div>`).join('')}
+      </div>`
+    : `<div style="color:var(--gray);font-size:.58rem;margin-top:.4rem">No documents uploaded yet</div>`;
 
   document.getElementById('modalBody').innerHTML = `
     <div class="dg">
@@ -669,14 +706,8 @@ function viewStaff(id) {
         ${row('Work Authorization', s.workAuth)}
         ${row('Country of Residence', s.countryResidence)}
         <div style="margin-top:.8rem">
-          <div style="font-size:.46rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gray);margin-bottom:.6rem">Uploaded Documents</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem">
-            ${s.ssnDocUrl ? `<div><div style="font-size:.48rem;color:var(--gray);margin-bottom:.3rem">SSN Card</div><a href="${s.ssnDocUrl}" target="_blank"><img src="${s.ssnDocUrl}" style="width:100%;max-height:80px;object-fit:cover;border:1px solid var(--border)" onerror="this.style.display='none'"></a><div><a href="${s.ssnDocUrl}" target="_blank" style="color:var(--gold);font-size:.5rem">↓ View / Download</a></div></div>` : ''}
-            ${s.idCardDocUrl ? `<div><div style="font-size:.48rem;color:var(--gray);margin-bottom:.3rem">ID Card / License</div><a href="${s.idCardDocUrl}" target="_blank"><img src="${s.idCardDocUrl}" style="width:100%;max-height:80px;object-fit:cover;border:1px solid var(--border)" onerror="this.style.display='none'"></a><div><a href="${s.idCardDocUrl}" target="_blank" style="color:var(--gold);font-size:.5rem">↓ View / Download</a></div></div>` : ''}
-            ${s.passportDocUrl ? `<div><div style="font-size:.48rem;color:var(--gray);margin-bottom:.3rem">Passport</div><a href="${s.passportDocUrl}" target="_blank"><img src="${s.passportDocUrl}" style="width:100%;max-height:80px;object-fit:cover;border:1px solid var(--border)" onerror="this.style.display='none'"></a><div><a href="${s.passportDocUrl}" target="_blank" style="color:var(--gold);font-size:.5rem">↓ View / Download</a></div></div>` : ''}
-            ${s.otherDocUrl ? `<div><div style="font-size:.48rem;color:var(--gray);margin-bottom:.3rem">Other Document</div><a href="${s.otherDocUrl}" target="_blank"><img src="${s.otherDocUrl}" style="width:100%;max-height:80px;object-fit:cover;border:1px solid var(--border)" onerror="this.style.display='none'"></a><div><a href="${s.otherDocUrl}" target="_blank" style="color:var(--gold);font-size:.5rem">↓ View / Download</a></div></div>` : ''}
-            ${!s.ssnDocUrl && !s.idCardDocUrl && !s.passportDocUrl && !s.otherDocUrl ? '<div style="color:var(--gray);font-size:.58rem;grid-column:1/-1">No documents uploaded yet</div>' : ''}
-          </div>
+          <div style="font-size:.46rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gray);margin-bottom:.4rem">Uploaded Document Images</div>
+          ${docsHtml}
         </div>
       </div>
       <div class="ds">
@@ -695,6 +726,11 @@ function viewStaff(id) {
         ${row('Signature Date', s.sigDate)}
       </div>
     </div>`;
+
+  document.getElementById('btnApprove').onclick = () => approveStaff(id);
+  document.getElementById('btnDelete').onclick  = () => deleteStaff(id);
+  document.getElementById('staffModal').classList.add('open');
+}
 
   document.getElementById('btnApprove').onclick = () => approveStaff(id);
   document.getElementById('btnDelete').onclick  = () => deleteStaff(id);
