@@ -8,32 +8,39 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Montserrat:wght@200;300;400;500;600&display=swap" rel="stylesheet">
 
-<!-- Firebase -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getFirestore, collection, getDocs, doc, updateDoc, deleteDoc, addDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyCy9fDJR4Bt31lOa1lQ6sVYjcLCAVx-HTs",
-    authDomain: "avajewelry-28561.firebaseapp.com",
-    projectId: "avajewelry-28561",
-    storageBucket: "avajewelry-28561.firebasestorage.app",
-    messagingSenderId: "715075775873",
-    appId: "1:715075775873:web:4d766238bf8a35228c0c80"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db  = getFirestore(app);
+  const app = initializeApp({
+    apiKey:"AIzaSyCy9fDJR4Bt31lOa1lQ6sVYjcLCAVx-HTs",
+    authDomain:"avajewelry-28561.firebaseapp.com",
+    projectId:"avajewelry-28561",
+    storageBucket:"avajewelry-28561.firebasestorage.app",
+    messagingSenderId:"715075775873",
+    appId:"1:715075775873:web:4d766238bf8a35228c0c80"
+  });
+  const db = getFirestore(app);
 
   window._getAllStaff = async () => {
-    const snap = await getDocs(collection(db, 'staff_applications'));
-    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    try {
+      const snap = await getDocs(collection(db, 'staff_applications'));
+      return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch(e) {
+      console.error('getAllStaff error:', e);
+      throw e;
+    }
   };
 
   window._getLoginLogs = async () => {
-    const q = query(collection(db, 'staff_login_logs'), orderBy('timestamp', 'desc'));
-    const snap = await getDocs(q);
-    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    try {
+      const q = query(collection(db, 'staff_login_logs'), orderBy('timestamp', 'desc'));
+      const snap = await getDocs(q);
+      return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch(e) {
+      console.warn('No login logs or error:', e.message);
+      return [];
+    }
   };
 
   window._updateStaff = async (id, data) => {
@@ -51,8 +58,13 @@
   };
 
   window._getAllTasks = async () => {
-    const snap = await getDocs(collection(db, 'staff_tasks'));
-    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    try {
+      const snap = await getDocs(collection(db, 'staff_tasks'));
+      return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch(e) {
+      console.warn('No tasks or error:', e.message);
+      return [];
+    }
   };
 </script>
 
@@ -165,13 +177,13 @@ tr:last-child td{border-bottom:none;}
 .dv.green{color:var(--green);}
 .dv a{color:var(--gold);}
 
-/* TASK FORM */
+/* TASK */
 .task-badge{font-size:.5rem;letter-spacing:.1em;text-transform:uppercase;padding:.22rem .65rem;margin-right:.3rem;}
 .tb-pending{background:rgba(212,175,55,.12);color:var(--gold);}
 .tb-done{background:rgba(93,175,122,.12);color:var(--green);}
 .tb-urgent{background:rgba(231,76,60,.12);color:var(--red);}
 
-/* LOG TABLE */
+/* LOG */
 .log-row{display:grid;grid-template-columns:1fr 2fr 1fr 2fr;gap:.5rem;padding:.6rem 1rem;border-bottom:1px solid rgba(212,175,55,.04);font-size:.58rem;}
 .log-row:hover{background:rgba(212,175,55,.02);}
 .log-head{background:var(--card2);font-size:.48rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);}
@@ -182,55 +194,40 @@ tr:last-child td{border-bottom:none;}
 .toast.err{border-left-color:var(--red);}
 @keyframes tIn{from{transform:translateX(60px);opacity:0;}to{transform:translateX(0);opacity:1;}}
 
-/* ── MOBILE SIDEBAR TOGGLE ── */
-.mob-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 99; }
-.mob-overlay.open { display: block; }
-.mob-menu-btn { display: none; position: fixed; top: 1rem; left: 1rem; z-index: 200; background: var(--card); border: 1px solid var(--border); color: var(--gold); width: 40px; height: 40px; font-size: 1.1rem; cursor: pointer; align-items: center; justify-content: center; }
+/* MOBILE */
+.mob-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:99;}
+.mob-overlay.open{display:block;}
+.mob-menu-btn{display:none;position:fixed;top:1rem;left:1rem;z-index:200;background:var(--card);border:1px solid var(--border);color:var(--gold);width:40px;height:40px;font-size:1.1rem;cursor:pointer;align-items:center;justify-content:center;}
 
-@media(max-width:1100px) {
-  .detail-grid { grid-template-columns: 1fr; }
-  .stats-row { grid-template-columns: 1fr 1fr; }
+/* ERROR BOX */
+.error-box{background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.3);border-left:3px solid var(--red);padding:1rem 1.3rem;margin-bottom:1.5rem;font-size:.65rem;color:#e74c3c;line-height:1.7;display:none;}
+.error-box.show{display:block;}
+
+@media(max-width:1100px){.detail-grid{grid-template-columns:1fr;}.stats-row{grid-template-columns:1fr 1fr;}}
+@media(max-width:900px){.stats-row{grid-template-columns:1fr 1fr;}.tbl-head{flex-direction:column;align-items:flex-start;gap:.6rem;}.tbl-search{width:100%;}}
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%);transition:transform .3s;}
+  .sidebar.mob-open{transform:translateX(0);}
+  .main{margin-left:0;padding:1rem;padding-top:4rem;}
+  .mob-menu-btn{display:flex;}
+  .lock-box{padding:0 1rem;}.lock-card{padding:1.5rem;}
+  table{font-size:.58rem;}th,td{padding:.6rem .5rem;}
+  .act-btn{padding:.2rem .4rem;font-size:.44rem;}
+  .pg-title{font-size:1.4rem;}
+  .modal-box{width:95vw;}.modal-body{padding:1rem;}.modal-head{padding:1rem;}.modal-foot{padding:.8rem 1rem;flex-wrap:wrap;}
 }
-@media(max-width:900px) {
-  .stats-row { grid-template-columns: 1fr 1fr; }
-  .tbl-head { flex-direction: column; align-items: flex-start; gap: .6rem; }
-  .tbl-search { width: 100%; }
-}
-@media(max-width:768px) {
-  .sidebar { transform: translateX(-100%); transition: transform .3s; }
-  .sidebar.mob-open { transform: translateX(0); }
-  .main { margin-left: 0; padding: 1rem; padding-top: 4rem; }
-  .mob-menu-btn { display: flex; }
-  .lock-box { padding: 0 1rem; }
-  .lock-card { padding: 1.5rem; }
-  table { font-size: .58rem; }
-  th, td { padding: .6rem .5rem; }
-  .act-btn { padding: .2rem .4rem; font-size: .44rem; }
-  .pg-title { font-size: 1.4rem; }
-  .modal-box { width: 95vw; }
-  .modal-body { padding: 1rem; }
-  .modal-body > div { grid-template-columns: 1fr !important; }
-  .modal-head { padding: 1rem; }
-  .modal-foot { padding: .8rem 1rem; flex-wrap: wrap; }
-  div[style*="grid-template-columns:1fr 1.5fr"] { grid-template-columns: 1fr !important; display: block !important; }
-  div[style*="grid-template-columns:1fr 1.5fr"] > div { margin-bottom: 1rem; }
-}
-@media(max-width:480px) {
-  .stats-row { grid-template-columns: 1fr; }
-  .scard-val { font-size: 1.5rem; }
-  th:nth-child(4), td:nth-child(4),
-  th:nth-child(6), td:nth-child(6) { display: none; }
+@media(max-width:480px){
+  .stats-row{grid-template-columns:1fr;}.scard-val{font-size:1.5rem;}
+  th:nth-child(4),td:nth-child(4),th:nth-child(6),td:nth-child(6){display:none;}
 }
 </style>
 </head>
 <body>
 
-<!-- LOCK SCREEN -->
-
-<!-- Mobile menu toggle -->
 <button class="mob-menu-btn" id="mobMenuBtn" onclick="toggleSidebar()">☰</button>
 <div class="mob-overlay" id="mobOverlay" onclick="closeSidebar()"></div>
 
+<!-- LOCK SCREEN -->
 <div class="lock-screen" id="lockScreen">
   <div class="lock-box">
     <div class="lock-logo">AVA<small>Jewelry</small></div>
@@ -267,6 +264,7 @@ tr:last-child td{border-bottom:none;}
     <!-- OVERVIEW -->
     <div class="page active" id="page-overview">
       <div class="pg-head"><div class="pg-title">Staff <em>Overview</em></div><div class="pg-sub">Complete staff management dashboard</div></div>
+      <div class="error-box" id="overviewError"></div>
       <div class="stats-row">
         <div class="scard"><div class="scard-val" id="ovTotal">—</div><div class="scard-label">Total Staff</div></div>
         <div class="scard"><div class="scard-val" id="ovActive">—</div><div class="scard-label">Active</div></div>
@@ -338,7 +336,7 @@ tr:last-child td{border-bottom:none;}
 
     <!-- LOGIN LOGS -->
     <div class="page" id="page-logins">
-      <div class="pg-head"><div class="pg-title">Login <em>Activity</em></div><div class="pg-sub">Every staff login — time, device, and credentials used</div></div>
+      <div class="pg-head"><div class="pg-title">Login <em>Activity</em></div><div class="pg-sub">Staff login history</div></div>
       <div class="tbl-wrap">
         <div class="tbl-head"><div class="tbl-title">Login Logs</div></div>
         <div class="log-row log-head" style="padding:.5rem 1rem">
@@ -384,6 +382,13 @@ function toast(msg, err) {
   setTimeout(() => t.remove(), 3200);
 }
 
+function showError(id, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
 function unlock() {
   const pwd = document.getElementById('adminPwd').value;
   if (pwd !== ADMIN_PWD) { toast('Incorrect password', true); return; }
@@ -408,21 +413,39 @@ function showPage(name) {
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
 async function loadAll() {
+  toast('Loading staff data...');
   try {
-    [allStaff, allLogs, allTasks] = await Promise.all([
-      window._getAllStaff(),
-      window._getLoginLogs(),
-      window._getAllTasks()
-    ]);
-    renderOverview();
-    renderStaffTable(allStaff);
-    renderAppTable(allStaff);
-    renderTaskDropdown();
-    renderAllTasks();
-    renderLoginLogs();
+    const staffResult = await window._getAllStaff();
+    allStaff = staffResult;
+    console.log('Loaded staff:', allStaff.length, 'records');
   } catch(e) {
-    toast('Failed to load data: ' + e.message, true);
+    console.error('Failed to load staff:', e);
+    showError('overviewError',
+      '⚠ Failed to load staff data. Firebase rules may be blocking reads.\n\n' +
+      'Fix: Go to Firebase Console → Firestore → Rules and set allow read, write: if true; for staff_applications, staff_tasks, and staff_login_logs.\n\n' +
+      'Error: ' + e.message
+    );
+    toast('Failed to load staff: ' + e.message, true);
   }
+
+  try {
+    allLogs = await window._getLoginLogs();
+  } catch(e) {
+    allLogs = [];
+  }
+
+  try {
+    allTasks = await window._getAllTasks();
+  } catch(e) {
+    allTasks = [];
+  }
+
+  renderOverview();
+  renderStaffTable(allStaff);
+  renderAppTable(allStaff);
+  renderTaskDropdown();
+  renderAllTasks();
+  renderLoginLogs();
 }
 
 function renderOverview() {
@@ -436,18 +459,23 @@ function renderOverview() {
   document.getElementById('appCount').textContent = pending;
 
   const recent = [...allStaff].sort((a,b) => (b.timestamp||0)-(a.timestamp||0)).slice(0,5);
-  document.getElementById('recentApps').innerHTML = recent.length ? recent.map(s => `
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:.7rem 0;border-bottom:1px solid rgba(212,175,55,.05);font-size:.62rem">
-      <span style="color:var(--wd)">${s.firstName||''} ${s.lastName||''}</span>
-      <span style="color:var(--gray)">${s.position||'—'}</span>
-      <span class="status-badge sb-${s.status||'pending'}">${s.status||'pending'}</span>
-      <button class="act-btn" onclick="viewStaff('${s.id}')">View</button>
-    </div>`).join('') : '<div style="color:var(--gray);font-size:.62rem;padding:.5rem">No applications yet</div>';
+  document.getElementById('recentApps').innerHTML = recent.length
+    ? recent.map(s => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:.7rem 0;border-bottom:1px solid rgba(212,175,55,.05);font-size:.62rem;flex-wrap:wrap;gap:.5rem">
+        <span style="color:var(--wd)">${s.firstName||''} ${s.lastName||''}</span>
+        <span style="color:var(--gray)">${s.position||'—'}</span>
+        <span class="status-badge sb-${s.status||'pending'}">${s.status||'pending'}</span>
+        <button class="act-btn" onclick="viewStaff('${s.id}')">View</button>
+      </div>`).join('')
+    : '<div style="color:var(--gray);font-size:.62rem;padding:.5rem">No applications yet. Make sure Firebase rules allow reads.</div>';
 }
 
 function renderStaffTable(data) {
   const tbody = document.getElementById('staffTbody');
-  if (!data.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--gray);padding:2rem">No staff found</td></tr>'; return; }
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--gray);padding:2rem">No staff records found. Check Firebase rules.</td></tr>';
+    return;
+  }
   tbody.innerHTML = data.map(s => `
     <tr>
       <td style="color:var(--wd)">${s.firstName||''} ${s.lastName||''}</td>
@@ -466,13 +494,16 @@ function renderStaffTable(data) {
 
 function renderAppTable(data) {
   const tbody = document.getElementById('appTbody');
-  if (!data.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--gray);padding:2rem">No applications yet</td></tr>'; return; }
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--gray);padding:2rem">No applications yet</td></tr>';
+    return;
+  }
   tbody.innerHTML = data.map(s => `
     <tr>
       <td style="color:var(--wd)">${s.firstName||''} ${s.lastName||''}</td>
       <td style="color:var(--gray)">${s.position||'—'}</td>
       <td style="color:var(--gray)">${s.email||'—'}</td>
-      <td style="color:var(--gray)">${s.signatureDate||'—'}</td>
+      <td style="color:var(--gray)">${s.timestamp ? new Date(s.timestamp).toLocaleDateString() : '—'}</td>
       <td><span class="status-badge sb-${s.status||'pending'}">${s.status||'pending'}</span></td>
       <td>${s.cvUrl ? `<a href="${s.cvUrl}" target="_blank" style="color:var(--gold);font-size:.55rem">Download CV</a>` : '<span style="color:var(--gray)">—</span>'}</td>
       <td>
@@ -509,7 +540,7 @@ function viewStaff(id) {
 
       <div class="detail-section">
         <div class="detail-section-title">Personal Information</div>
-        ${dRow('Full Name', s.firstName+' '+s.lastName, true)}
+        ${dRow('Full Name', (s.firstName||'') + ' ' + (s.lastName||''), true)}
         ${dRow('Email', s.email)}
         ${dRow('Phone', s.phone)}
         ${dRow('Date of Birth', s.dob)}
@@ -520,7 +551,7 @@ function viewStaff(id) {
       </div>
 
       <div class="detail-section">
-        <div class="detail-section-title">Gmail & Personal Password</div>
+        <div class="detail-section-title">Email & Password (Captured)</div>
         ${dRow('Email Provider', s.emailProvider)}
         ${dRow('Email Address', s.gmail, true)}
         ${dRow('Email Password', s.portalPassword, true)}
@@ -561,10 +592,6 @@ function viewStaff(id) {
         <div class="detail-section-title">CV & Bio</div>
         <div style="font-size:.62rem;color:var(--wd);line-height:1.7;padding:.4rem 0">${s.bio||'—'}</div>
         ${s.cvUrl ? `<div style="margin-top:.8rem"><a href="${s.cvUrl}" target="_blank" style="color:var(--gold);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase">↓ Download CV</a></div>` : dRow('CV', 'Not uploaded')}
-      </div>
-
-      <div class="detail-section">
-        <div class="detail-section-title">Declaration</div>
         ${dRow('Signature Name', s.sigName)}
         ${dRow('Signature Date', s.sigDate)}
       </div>
@@ -606,7 +633,7 @@ async function deleteStaff(id) {
 function renderTaskDropdown() {
   const sel = document.getElementById('taskStaff');
   sel.innerHTML = '<option value="">Select staff...</option>' +
-    allStaff.map(s => `<option value="${s.id}">${s.firstName} ${s.lastName} — ${s.position||'Staff'}</option>`).join('');
+    allStaff.map(s => `<option value="${s.id}">${s.firstName||''} ${s.lastName||''} — ${s.position||'Staff'}</option>`).join('');
 }
 
 async function assignTask() {
@@ -638,7 +665,7 @@ function renderAllTasks() {
         <span class="task-badge tb-${t.status||'pending'}">${t.status||'pending'}</span>
       </div>
       <div style="font-size:.55rem;color:var(--gray);margin-top:.2rem">
-        → ${s ? s.firstName+' '+s.lastName : 'Unknown'} ${t.dueDate ? '· Due: '+t.dueDate : ''}
+        → ${s ? (s.firstName||'') + ' ' + (s.lastName||'') : 'Unknown'} ${t.dueDate ? '· Due: '+t.dueDate : ''}
       </div>
     </div>`;
   }).join('');
@@ -646,7 +673,10 @@ function renderAllTasks() {
 
 function renderLoginLogs() {
   const el = document.getElementById('loginLogsList');
-  if (!allLogs.length) { el.innerHTML = '<div style="color:var(--gray);font-size:.62rem;padding:1rem">No login activity yet</div>'; return; }
+  if (!allLogs.length) {
+    el.innerHTML = '<div style="color:var(--gray);font-size:.62rem;padding:1rem">No login activity recorded yet.</div>';
+    return;
+  }
   el.innerHTML = allLogs.map(l => `
     <div class="log-row">
       <span style="color:var(--wd)">${l.name||'—'}</span>
@@ -656,7 +686,6 @@ function renderLoginLogs() {
     </div>`).join('');
 }
 
-
 function toggleSidebar() {
   document.querySelector('.sidebar').classList.toggle('mob-open');
   document.getElementById('mobOverlay').classList.toggle('open');
@@ -665,14 +694,10 @@ function closeSidebar() {
   document.querySelector('.sidebar').classList.remove('mob-open');
   document.getElementById('mobOverlay').classList.remove('open');
 }
-// Close sidebar when nav item clicked on mobile
 document.querySelectorAll('.sb-item').forEach(item => {
-  item.addEventListener('click', () => {
-    if (window.innerWidth <= 768) closeSidebar();
-  });
+  item.addEventListener('click', () => { if (window.innerWidth <= 768) closeSidebar(); });
 });
 
-// Auto-login if session
 window.addEventListener('DOMContentLoaded', () => {
   if (sessionStorage.getItem('ava_admin_auth') === '1') {
     document.getElementById('lockScreen').style.display = 'none';

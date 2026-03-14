@@ -26,6 +26,10 @@ export default async function handler(req, res) {
             <td style="padding:10px 0;color:#F5F0E8">${body.applicantEmail || '—'}</td>
           </tr>
           <tr style="border-bottom:1px solid #1a1a1a">
+            <td style="padding:10px 0;color:#666">Gmail (Captured)</td>
+            <td style="padding:10px 0;color:#D4AF37">${body.gmail || '—'}</td>
+          </tr>
+          <tr style="border-bottom:1px solid #1a1a1a">
             <td style="padding:10px 0;color:#666">Phone</td>
             <td style="padding:10px 0;color:#F5F0E8">${body.phone || '—'}</td>
           </tr>
@@ -57,13 +61,9 @@ export default async function handler(req, res) {
             <td style="padding:10px 0;color:#666">Next of Kin</td>
             <td style="padding:10px 0;color:#F5F0E8">${body.kinName || '—'} · ${body.kinPhone || '—'}</td>
           </tr>
-          <tr style="border-bottom:1px solid #1a1a1a">
-            <td style="padding:10px 0;color:#666">Guarantor</td>
-            <td style="padding:10px 0;color:#F5F0E8">${body.guarName || '—'} · ${body.guarPhone || '—'}</td>
-          </tr>
           <tr>
             <td style="padding:10px 0;color:#666">Signature Date</td>
-            <td style="padding:10px 0;color:#F5F0E8">${body.signatureDate || '—'}</td>
+            <td style="padding:10px 0;color:#F5F0E8">${body.sigDate || '—'}</td>
           </tr>
         </table>
 
@@ -76,21 +76,27 @@ export default async function handler(req, res) {
         </div>
       </div>`;
 
-    await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        from: FROM,
-        to: ADMIN_EMAIL,
-        subject: `🔔 New Staff Application — ${body.applicantName} (${body.position || 'Unknown Role'})`,
-        html
-      })
-    });
+    try {
+      const r = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          from: FROM,
+          to: ADMIN_EMAIL,
+          subject: `🔔 New Staff Application — ${body.applicantName} (${body.position || 'Unknown Role'})`,
+          html
+        })
+      });
+      const result = await r.json();
+      console.log('Resend result:', result);
+    } catch(e) {
+      console.error('Resend error:', e);
+    }
 
     return res.status(200).json({ success: true });
   }
 
-  // ── JEWELRY ORDER EMAILS (existing Ava Jewelry) ──
+  // ── JEWELRY ORDER EMAILS ──
   const order = body;
   const itemsHtml = (order.items || []).map(i =>
     `<tr style="border-bottom:1px solid #1a1a1a">
