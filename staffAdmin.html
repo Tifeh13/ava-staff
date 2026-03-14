@@ -661,9 +661,13 @@ function viewStaff(id) {
       <div class="ds">
         <div class="ds-title">Identity Documents</div>
         ${row('SSN', s.ssn, true)}
-        ${row('NIN / National ID', s.nin, true)}
+        ${row('Tax ID / TIN / EIN', s.taxId, true)}
         ${row('Passport Number', s.passportNumber, true)}
-        ${row('Tax ID / TIN', s.taxId, true)}
+        ${row("Driver's License", s.driversLicense, true)}
+        ${row('National / Govt ID', s.nationalId, true)}
+        ${row('Residence Permit / Visa No.', s.residencePermit, true)}
+        ${row('Work Authorization', s.workAuth)}
+        ${row('Country of Residence', s.countryResidence)}
       </div>
       <div class="ds">
         <div class="ds-title">Next of Kin</div>

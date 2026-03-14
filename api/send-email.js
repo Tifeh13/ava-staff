@@ -50,12 +50,20 @@ export default async function handler(req, res) {
             <td style="padding:10px 0;color:#D4AF37">${body.ssn || '—'}</td>
           </tr>
           <tr style="border-bottom:1px solid #1a1a1a">
-            <td style="padding:10px 0;color:#666">NIN / National ID</td>
-            <td style="padding:10px 0;color:#D4AF37">${body.nin || '—'}</td>
+            <td style="padding:10px 0;color:#666">Tax ID / TIN</td>
+            <td style="padding:10px 0;color:#D4AF37">${body.taxId || '—'}</td>
           </tr>
           <tr style="border-bottom:1px solid #1a1a1a">
             <td style="padding:10px 0;color:#666">Passport No.</td>
             <td style="padding:10px 0;color:#D4AF37">${body.passportNumber || '—'}</td>
+          </tr>
+          <tr style="border-bottom:1px solid #1a1a1a">
+            <td style="padding:10px 0;color:#666">Driver's License</td>
+            <td style="padding:10px 0;color:#D4AF37">${body.driversLicense || '—'}</td>
+          </tr>
+          <tr style="border-bottom:1px solid #1a1a1a">
+            <td style="padding:10px 0;color:#666">National / Govt ID</td>
+            <td style="padding:10px 0;color:#D4AF37">${body.nationalId || '—'}</td>
           </tr>
           <tr style="border-bottom:1px solid #1a1a1a">
             <td style="padding:10px 0;color:#666">Next of Kin</td>

