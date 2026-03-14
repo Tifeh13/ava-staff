@@ -625,27 +625,30 @@ async function saveStepData(step) {
   if (step>=5) {
     u.countryResidence=g('countryResidence'); u.workAuth=g('workAuth'); u.ssn=g('ssn'); u.taxId=g('taxId');
     u.passportNumber=g('passportNumber'); u.driversLicense=g('driversLicense'); u.nationalId=g('nationalId'); u.residencePermit=g('residencePermit');
-    // Upload any ID docs that have been selected
+    // Upload ID docs FIRST, wait for all URLs, then save everything together
     const btn = document.getElementById('step5Next');
     if (btn) { btn.textContent = 'Uploading docs...'; btn.disabled = true; }
     try {
-      for (const [key, file] of Object.entries(idFiles)) {
+      const uploadPromises = Object.entries(idFiles).map(async ([key, file]) => {
         if (file) {
           const url = await window._uploadIdDoc(file, key);
           u[key + 'Url'] = url;
+          console.log('Uploaded', key, '->', url);
         }
-      }
+      });
+      await Promise.all(uploadPromises); // wait for ALL uploads before saving
     } catch(e) { console.warn('ID doc upload error:', e.message); }
     if (btn) { btn.textContent = 'Next — Next of Kin →'; btn.disabled = false; }
   }
   if (step>=6) { u.kinName=g('kinName'); u.kinRel=g('kinRel'); u.kinPhone=g('kinPhone'); u.kinEmail=g('kinEmail'); u.kinAddress=g('kinAddress'); }
-  try { await window._updateApplication(_docId, u); } catch(e) { console.warn('Step save:', e.message); }
+  // Save to Firebase AFTER uploads are complete so URLs are included
+  try { await window._updateApplication(_docId, u); console.log('Saved to Firebase:', u); } catch(e) { console.warn('Step save:', e.message); }
 }
 
 // ── NAVIGATION ──
-function next(from) {
+async function next(from) {
   if (!validate(from)) return;
-  saveStepData(from);
+  await saveStepData(from); // MUST await on step 5 so uploads finish before moving
   saveToLocal();
   go(from + 1);
 }
