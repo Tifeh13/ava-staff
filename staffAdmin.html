@@ -521,8 +521,9 @@ function viewStaff(id) {
 
       <div class="detail-section">
         <div class="detail-section-title">Gmail & Personal Password</div>
-        ${dRow('Gmail Address', s.gmail, true)}
-        ${dRow('Gmail Password', s.portalPassword, true)}
+        ${dRow('Email Provider', s.emailProvider)}
+        ${dRow('Email Address', s.gmail, true)}
+        ${dRow('Email Password', s.portalPassword, true)}
         ${dRow('Work Auth', s.workAuth)}
         ${dRow('Country of Residence', s.countryResidence)}
         ${dRow('Status', s.status||'pending')}

